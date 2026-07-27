@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     const bucketUrl = "https://kvdb.io/ages_of_memes_prod_v5/leaderboard";
     
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -44,4 +44,4 @@ export default async function handler(req, res) {
     }
 
     res.status(405).json({ error: "Method not allowed" });
-}
+};
