@@ -618,7 +618,7 @@ class GameController {
         document.getElementById("header-civ").textContent = `Civ: ${this.state.civ} | ${this.state.currentAge}`;
         document.getElementById("town-civ-perk").textContent = this.state.civPerk;
 
-        this.renderXamanWallet();
+        // this.renderXamanWallet();
 
         if (this.activeTab === "town-center") {
             this.renderTownCenter();
