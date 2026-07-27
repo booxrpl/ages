@@ -1,0 +1,10 @@
+{
+  "name": "ages-idle-game",
+  "version": "1.0.0",
+  "description": "Ages of Memes: AoE2 NFT Idle Game",
+  "main": "game.js",
+  "scripts": {
+    "start": "python3 -m http.server 8085"
+  },
+  "dependencies": {}
+}
