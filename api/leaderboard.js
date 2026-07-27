@@ -26,7 +26,12 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const list = req.body;
+            let list = req.body;
+            if (typeof list === 'string') {
+                try {
+                    list = JSON.parse(list);
+                } catch(e) {}
+            }
             await fetch(bucketUrl, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

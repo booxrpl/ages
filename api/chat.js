@@ -26,7 +26,13 @@ export default async function handler(req, res) {
 
     if (req.method === 'POST') {
         try {
-            const { sender, msg } = req.body;
+            let body = req.body;
+            if (typeof body === 'string') {
+                try {
+                    body = JSON.parse(body);
+                } catch(e) {}
+            }
+            const { sender, msg } = body || {};
             
             // Fetch current chat
             let chat = [];

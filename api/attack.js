@@ -36,7 +36,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method === 'POST') {
-        const { targetId, alert } = req.body;
+        let body = req.body;
+        if (typeof body === 'string') {
+            try {
+                body = JSON.parse(body);
+            } catch(e) {}
+        }
+        const { targetId, alert } = body || {};
         if (!targetId || !alert) return res.status(400).json({ error: "targetId and alert required" });
         const keyUrl = `https://kvdb.io/ages_of_memes_prod_v5/attack_${targetId}`;
 

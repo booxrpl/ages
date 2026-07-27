@@ -235,7 +235,7 @@ class GameController {
                 });
             });
 
-            // Set up background synchronization and real-time attack polling (every 10 seconds)
+            // Set up background synchronization and real-time attack polling (every 3 seconds)
             setInterval(async () => {
                 await this.leaderboard.syncPlayerProfile(this.state);
                 const alerts = await this.leaderboard.checkAttackNotifications(this.state.playerId);
@@ -249,7 +249,7 @@ class GameController {
                 }
                 await this.leaderboard.fetchChatLogs();
                 this.leaderboard.renderChatConsole();
-            }, 10000);
+            }, 3000);
         }
     }
 
