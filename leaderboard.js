@@ -6,7 +6,7 @@ export class LeaderboardManager {
         this.npcs = []; // NPCs completely removed! Only real online players.
         this.chatLogs = [];
         this.onlinePlayers = [];
-        this.bucketBase = "https://kvdb.io/MwaQM3fZ1UWw1ae78w3NbM";
+        this.bucketBase = "https://e2e2a1a32b9abae9-97-145-149-129.serveousercontent.com";
     }
 
     async fetchOnlineLeaderboard() {
