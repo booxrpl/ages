@@ -46,6 +46,15 @@ class GameController {
             if (parsed.xamanConnected === undefined) parsed.xamanConnected = false;
             if (parsed.xamanAddress === undefined) parsed.xamanAddress = "";
             if (parsed.xamanBalance === undefined) parsed.xamanBalance = 0;
+            if (!parsed.achievements) {
+                parsed.achievements = {
+                    mints: 0,
+                    battles: 0,
+                    structures: 0,
+                    swaps: 0,
+                    claimed: []
+                };
+            }
             
             // Building integrity & Military HP tracking
             if (!parsed.buildingHP) {
@@ -187,7 +196,14 @@ class GameController {
             villagerList: initialList,
             xamanConnected: false,
             xamanAddress: "",
-            xamanBalance: 0
+            xamanBalance: 0,
+            achievements: {
+                mints: 0,
+                battles: 0,
+                structures: 0,
+                swaps: 0,
+                claimed: []
+            }
         };
     }
 
@@ -235,7 +251,12 @@ class GameController {
         this.toggleStorageFullAlerts(storageLimit);
         this.updateAgeResearchTick();
 
-        this.leaderboard.updateNPCTick();
+        const npcEvents = this.leaderboard.updateNPCTick(this.state);
+        if (npcEvents && npcEvents.length > 0) {
+            npcEvents.forEach(evt => {
+                this.showToast(evt.title, evt.msg, evt.alertType);
+            });
+        }
         this.marketplace.updateMarketplaceTick(this.state);
 
         this.saveState();
@@ -436,7 +457,7 @@ class GameController {
         });
 
         // Setup navbar tabs distributed logically
-        const tabs = ["town-center", "manage-villagers", "economic-buildings", "military", "combat-arena", "marketplace", "nft-shop", "leaderboard"];
+        const tabs = ["town-center", "village-map", "manage-villagers", "economic-buildings", "military", "combat-arena", "marketplace", "nft-shop", "achievements", "leaderboard", "manager"];
         tabs.forEach(tab => {
             document.getElementById(`tab-${tab}`)?.addEventListener("click", () => this.switchTab(tab));
         });
@@ -710,11 +731,16 @@ class GameController {
         } else if (this.activeTab === "combat-arena") {
             this.renderCombatArena();
         } else if (this.activeTab === "marketplace") {
+            this.activeTab = "marketplace"; // placeholder
             this.renderMarketplace();
         } else if (this.activeTab === "leaderboard") {
             this.renderLeaderboard();
         } else if (this.activeTab === "manager") {
             this.renderManager();
+        } else if (this.activeTab === "village-map") {
+            this.renderVillageMap();
+        } else if (this.activeTab === "achievements") {
+            this.renderAchievements();
         }
     }
 
@@ -766,6 +792,162 @@ class GameController {
             this.renderManager();
             alert(`💀 Archon Power: Standing army of ${this.leaderboard.npcs[npcIndex].name} has been completely vaporized.`);
         }
+    }
+
+    showToast(title, msg, type = "info") {
+        const container = document.getElementById("toast-container");
+        if (!container) return;
+
+        const toast = document.createElement("div");
+        toast.className = `toast-alert toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-title">${title}</div>
+            <div class="toast-body">${msg}</div>
+        `;
+        container.appendChild(toast);
+
+        // Auto remove after 6 seconds
+        setTimeout(() => {
+            toast.style.animation = "toastFadeOut 0.4s forwards";
+            setTimeout(() => {
+                toast.remove();
+            }, 400);
+        }, 6000);
+    }
+
+    renderVillageMap() {
+        const board = document.getElementById("village-map-board");
+        if (!board) return;
+        board.innerHTML = "";
+
+        const structuresList = [
+            { id: "town-center", name: "Town Center", icon: "🏰", tab: "town-center", maxHp: 3000, desc: "Central administration hub." },
+            { id: "mill", name: "Mill", icon: "🌾", tab: "economic-buildings", maxHp: 600, desc: "Farm production booster." },
+            { id: "lumberCamp", name: "Lumber Camp", icon: "🪵", tab: "economic-buildings", maxHp: 600, desc: "Passive wood generator." },
+            { id: "miningCamp", name: "Mining Camp", icon: "🪨", tab: "economic-buildings", maxHp: 600, desc: "Passive gold/stone generator." },
+            { id: "barracks", name: "Barracks", icon: "⚔️", tab: "military", maxHp: 1000, desc: "Recruit Spearmen/Champions." },
+            { id: "stable", name: "Stable", icon: "🐴", tab: "military", maxHp: 1200, desc: "Recruit Knights/Horsemen." },
+            { id: "archeryRange", name: "Archery Range", icon: "🏹", tab: "military", maxHp: 1000, desc: "Recruit Archers." },
+            { id: "blacksmith", name: "Blacksmith", icon: "⚒️", tab: "economic-buildings", maxHp: 1000, desc: "Research weapons & armor." },
+            { id: "university", name: "University", icon: "🎓", tab: "economic-buildings", maxHp: 1400, desc: "Advanced science and damage buffs." },
+            { id: "market", name: "Market", icon: "📈", tab: "marketplace", maxHp: 1200, desc: "Lend resources and swap $AGES." },
+            { id: "castle", name: "Castle", icon: "🏯", tab: "military", maxHp: 4800, desc: "Produce Catapults & Siege items." }
+        ];
+
+        structuresList.forEach(s => {
+            let isOwned = false;
+            if (s.id === "town-center") {
+                isOwned = true;
+            } else if (s.id === "mill" || s.id === "lumberCamp" || s.id === "miningCamp") {
+                isOwned = (this.state.nfts[s.id] || 0) > 0;
+            } else {
+                isOwned = this.state.nfts[s.id] === true;
+            }
+
+            const card = document.createElement("div");
+            
+            if (isOwned) {
+                card.className = "map-building-card text-center";
+                const hp = this.state.buildingHP[s.id] !== undefined ? this.state.buildingHP[s.id] : s.maxHp;
+                const hpPct = Math.min(100, Math.floor((hp / s.maxHp) * 100));
+                
+                card.innerHTML = `
+                    <div class="card-icon">${s.icon}</div>
+                    <h4 class="font-cinzel m-0" style="font-size:0.95rem;">${s.name}</h4>
+                    <span class="badge badge-success btn-xs my-1 font-cinzel">CONSTRUCTED</span>
+                    <div class="progress mt-1" style="height: 5px;" title="Integrity HP: ${hp}/${s.maxHp}">
+                        <div class="progress-bar bg-success" style="width: ${hpPct}%"></div>
+                    </div>
+                    <p class="small text-muted m-0 mt-2 font-cinzel" style="font-size:0.7rem;">Click to Manage</p>
+                `;
+                card.addEventListener("click", () => {
+                    this.switchTab(s.tab);
+                });
+            } else {
+                card.className = "map-building-blueprint text-center";
+                card.innerHTML = `
+                    <div class="card-icon" style="opacity: 0.3;">${s.icon}</div>
+                    <h4 class="font-cinzel m-0" style="font-size:0.85rem; color:#ab9587;">${s.name}</h4>
+                    <span class="badge badge-outline-warning btn-xs my-1 font-cinzel">BLUEPRINT SLOT</span>
+                    <p class="small text-muted m-0 mt-2 font-cinzel" style="font-size:0.65rem;">Click to Construct</p>
+                `;
+                card.addEventListener("click", () => {
+                    this.switchTab("nft-shop");
+                });
+            }
+            board.appendChild(card);
+        });
+    }
+
+    renderAchievements() {
+        const listDiv = document.getElementById("achievements-directory-list");
+        if (!listDiv) return;
+        listDiv.innerHTML = "";
+
+        const achList = [
+            { id: "ach_mint", name: "Pioneer Sovereign", desc: "Mint 5 Villager NFTs to expand your labor force.", target: 5, field: "mints", reward: 50 },
+            { id: "ach_battle", name: "Warlord of Memes", desc: "Successfully win 5 PvP raids on the PvP Map.", target: 5, field: "battles", reward: 100 },
+            { id: "ach_structure", name: "Empire Architect", desc: "Construct 5 total building structures in your village.", target: 5, field: "structures", reward: 75 },
+            { id: "ach_swap", name: "Financial Monarch", desc: "Swap mined Gold for $AGES tokens 3 times.", target: 3, field: "swaps", reward: 40 },
+            { id: "ach_epoch", name: "Eternal Emperor", desc: "Reach the Imperial Age (Level 4 Faction status).", target: 4, field: "epoch", reward: 200 }
+        ];
+
+        achList.forEach(ach => {
+            let val = 0;
+            if (ach.field === "epoch") {
+                val = this.state.ageLevel;
+            } else {
+                val = this.state.achievements[ach.field] || 0;
+            }
+
+            const pct = Math.min(100, Math.floor((val / ach.target) * 100));
+            const claimed = this.state.achievements.claimed.includes(ach.id);
+
+            const col = document.createElement("div");
+            col.className = "col-md-6 mb-3";
+
+            let actionBtn = "";
+            if (claimed) {
+                actionBtn = `<button class="btn btn-outline-success btn-sm w-100 font-cinzel" disabled>Claimed ✓</button>`;
+            } else if (pct >= 100) {
+                actionBtn = `<button class="btn btn-gold btn-sm w-100 font-cinzel" onclick="window.game.claimAchievement('${ach.id}', ${ach.reward})">Claim ${ach.reward} $AGES Bounties</button>`;
+            } else {
+                actionBtn = `<button class="btn btn-outline-secondary btn-sm w-100 font-cinzel" disabled>Locked (${val}/${ach.target})</button>`;
+            }
+
+            col.innerHTML = `
+                <div class="card p-3 h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h4 class="font-cinzel m-0 text-warning" style="font-size:1.05rem;">${ach.name}</h4>
+                            <span class="badge badge-warning">${ach.reward} $AGES</span>
+                        </div>
+                        <p class="small text-muted mb-3 font-cinzel">${ach.desc}</p>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between small text-muted mb-1 font-cinzel">
+                            <span>Progress</span>
+                            <span>${val} / ${ach.target} (${pct}%)</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar ${pct >= 100 ? 'bg-success' : 'bg-warning'}" style="width: ${pct}%"></div>
+                        </div>
+                        ${actionBtn}
+                    </div>
+                </div>
+            `;
+            listDiv.appendChild(col);
+        });
+    }
+
+    claimAchievement(id, reward) {
+        if (this.state.achievements.claimed.includes(id)) return;
+        this.state.achievements.claimed.push(id);
+        this.state.agesToken += reward;
+        this.saveState();
+        this.updateUI();
+        this.updateResourceUI();
+        this.showToast("🎖️ Achievement Claimed!", `Received ${reward} $AGES memecoins!`, "success");
     }
 
     renderXamanWallet() {
@@ -2017,6 +2199,7 @@ class GameController {
         let buildingDestructionLogs = [];
 
         if (result.winner === "Attacker") {
+            this.state.achievements.battles = (this.state.achievements.battles || 0) + 1;
             const limit = this.getStorageLimit();
             this.state.resources.food = Math.min(limit, this.state.resources.food + result.loot.food);
             this.state.resources.wood = Math.min(limit, this.state.resources.wood + result.loot.wood);
@@ -2201,6 +2384,7 @@ class GameController {
             role: "idle"
         });
 
+        this.state.achievements.mints = (this.state.achievements.mints || 0) + 1;
         this.saveState();
         this.updateUI();
         alert("🎉 Successfully minted a new individual Villager NFT! Gatherer assigned with specialty: " + spec);
@@ -2219,6 +2403,7 @@ class GameController {
         const maxHP = this.getMaxBuildingHP(buildingKey);
         this.state.buildingHP[buildingKey] = maxHP;
 
+        this.state.achievements.structures = (this.state.achievements.structures || 0) + 1;
         this.saveState();
         this.updateUI();
         alert(`🎉 Successfully constructed ${buildingKey.toUpperCase()}!`);
@@ -2235,6 +2420,7 @@ class GameController {
         const maxHP = this.getMaxBuildingHP(buildingKey);
         this.state.buildingHP[buildingKey] = maxHP;
 
+        this.state.achievements.structures = (this.state.achievements.structures || 0) + 1;
         this.saveState();
         this.updateUI();
         alert(`⚖️ Construction Completed! You have unlocked your ${buildingKey.toUpperCase()} building NFT.`);
@@ -2361,6 +2547,9 @@ class GameController {
         }
 
         if (result.success) {
+            if (type === "gold") {
+                this.state.achievements.swaps = (this.state.achievements.swaps || 0) + 1;
+            }
             this.saveState();
             this.updateResourceUI();
             this.updateSwapUI();

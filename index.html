@@ -126,6 +126,9 @@
                     <button id="tab-town-center" class="active">
                         <span class="nav-icon">🏰</span> Town Center
                     </button>
+                    <button id="tab-village-map">
+                        <span class="nav-icon">🗺️</span> Village Map
+                    </button>
                     <button id="tab-manage-villagers">
                         <span class="nav-icon">👨‍🌾</span> Worker Guild
                     </button>
@@ -143,6 +146,9 @@
                     </button>
                     <button id="tab-nft-shop">
                         <span class="nav-icon">🛒</span> NFT Shop
+                    </button>
+                    <button id="tab-achievements">
+                        <span class="nav-icon">🎖️</span> Achievements
                     </button>
                     <button id="tab-leaderboard">
                         <span class="nav-icon">🏆</span> Leaderboard
@@ -285,6 +291,22 @@
                         <ul id="active-rental-perks" class="rental-perks-list">
                             <!-- Populated dynamically -->
                         </ul>
+                    </div>
+                </section>
+
+                <!-- View: Village Map -->
+                <section id="view-village-map" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Imperial Faction Village Map</h2>
+                        <p class="lead">A live isometric overview of your kingdom. Clicking any constructed building redirects you to its command interface.</p>
+                    </div>
+
+                    <div class="card p-4 text-center">
+                        <div class="village-map-container">
+                            <div class="village-map-grid" id="village-map-board">
+                                <!-- Populated dynamically by game.js with active buildings or blue blueprints -->
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -1119,6 +1141,18 @@
                     </div>
                 </section>
 
+                <!-- View: Achievements -->
+                <section id="view-achievements" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">🎖️ Faction Achievements Guild 🎖️</h2>
+                        <p class="lead">Complete real-life tasks in your empire to earn rare resources and $AGES memecoin bounties.</p>
+                    </div>
+
+                    <div class="row" id="achievements-directory-list">
+                        <!-- Populated dynamically by game.js: Progress bar, Claim button, Claimed badge -->
+                    </div>
+                </section>
+
                 <!-- View: Leaderboard -->
                 <section id="view-leaderboard" class="tab-view hidden">
                     <div class="glass-panel p-4 mb-4 text-center section-hero">
@@ -1233,6 +1267,15 @@
                             </table>
                         </div>
                     </div>
+
+                    <!-- Live Server Lobby logs & player registration simulation -->
+                    <div class="card p-4 mt-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">📡 Global Multiplayer Lobby Server Logs</h3>
+                        <p class="small text-muted mb-2 font-cinzel">Simulated online node tracking real-time player connections, sign-ups, global lobby chat, and auto-raids.</p>
+                        <div class="card p-3 bg-black console-box text-left" id="admin-server-chat-logs" style="height: 250px; overflow-y: auto; font-family: monospace; color: #81c784; font-size: 0.85rem; line-height: 1.4; border: 1px solid var(--border-gold);">
+                            <div>[SYSTEM]: Node server active on ages-tau.vercel.app...</div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- Password Auth Modal for Manager -->
@@ -1254,6 +1297,9 @@
             </main>
         </div>
     </div>
+
+    <!-- Web3 Toast Notifications Container -->
+    <div id="toast-container" class="toast-wrapper"></div>
 
     <!-- Wire scripting files -->
     <script type="module" src="game.js"></script>
