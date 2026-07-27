@@ -1,9 +1,8 @@
-// Real-time Online Leaderboard, Combat Notifications, and Global Chat via KVdb
+// Real-time Online Leaderboard, Combat Notifications, and Global Chat via Vercel serverless API
 import { CombatEngine } from './combat.js';
 
 export class LeaderboardManager {
     constructor() {
-        this.bucketUrl = "https://kvdb.io/ages_of_memes_prod_v3";
         this.npcs = []; // NPCs completely removed! Only real online players.
         this.chatLogs = [];
         this.onlinePlayers = [];
@@ -11,7 +10,7 @@ export class LeaderboardManager {
 
     async fetchOnlineLeaderboard() {
         try {
-            const response = await fetch(`${this.bucketUrl}/leaderboard`);
+            const response = await fetch("/api/leaderboard");
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -28,7 +27,7 @@ export class LeaderboardManager {
     async saveOnlineLeaderboard(list) {
         this.onlinePlayers = list;
         try {
-            await fetch(`${this.bucketUrl}/leaderboard`, {
+            await fetch("/api/leaderboard", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(list)
@@ -93,23 +92,13 @@ export class LeaderboardManager {
 
     async queueAttackNotification(targetId, attackDetails) {
         try {
-            // Get existing notifications
-            let alerts = [];
-            const response = await fetch(`${this.bucketUrl}/attack_${targetId}`);
-            if (response.ok) {
-                const text = await response.text();
-                if (text) alerts = JSON.parse(text);
-            }
-
-            alerts.push({
-                time: Date.now(),
-                ...attackDetails
-            });
-
-            await fetch(`${this.bucketUrl}/attack_${targetId}`, {
+            await fetch("/api/attack", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(alerts)
+                body: JSON.stringify({
+                    targetId: targetId,
+                    alert: attackDetails
+                })
             });
         } catch (e) {
             console.error("Failed to queue attack alert", e);
@@ -118,19 +107,10 @@ export class LeaderboardManager {
 
     async checkAttackNotifications(playerId) {
         try {
-            const url = `${this.bucketUrl}/attack_${playerId}`;
-            const response = await fetch(url);
+            const response = await fetch(`/api/attack?playerId=${playerId}`);
             if (response.ok) {
-                const text = await response.text();
-                if (text && text.trim().length > 0) {
-                    const alerts = JSON.parse(text);
-                    // Clear the notifications key
-                    await fetch(url, {
-                        method: "POST",
-                        body: JSON.stringify([])
-                    });
-                    return alerts;
-                }
+                const alerts = await response.json();
+                return alerts;
             }
         } catch (e) {
             console.error("Failed to check attack notifications", e);
@@ -141,7 +121,7 @@ export class LeaderboardManager {
     // Chat Logs online sync
     async fetchChatLogs() {
         try {
-            const response = await fetch(`${this.bucketUrl}/chat`);
+            const response = await fetch("/api/chat");
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
@@ -156,19 +136,16 @@ export class LeaderboardManager {
     }
 
     async postChatMessage(sender, msg) {
-        const chat = await this.fetchChatLogs();
-        chat.push({ time: Date.now(), sender, msg });
-        
-        // Keep last 40 chats
-        const trimmed = chat.slice(-40);
-        this.chatLogs = trimmed;
-
         try {
-            await fetch(`${this.bucketUrl}/chat`, {
+            const response = await fetch("/api/chat", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(trimmed)
+                body: JSON.stringify({ sender, msg })
             });
+            if (response.ok) {
+                const data = await response.json();
+                this.chatLogs = data;
+            }
         } catch (e) {
             console.error("Failed to post chat message", e);
         }
@@ -177,6 +154,7 @@ export class LeaderboardManager {
     }
 
     renderChatConsole() {
+        // Render in manager portal logs
         const chatLogsDiv = document.getElementById("admin-server-chat-logs");
         if (chatLogsDiv) {
             chatLogsDiv.innerHTML = "";
@@ -186,6 +164,23 @@ export class LeaderboardManager {
                 chatLogsDiv.appendChild(div);
             });
             chatLogsDiv.scrollTop = chatLogsDiv.scrollHeight;
+        }
+
+        // Render in player public lobby chat box
+        const globalChatDiv = document.getElementById("global-chat-box");
+        if (globalChatDiv) {
+            globalChatDiv.innerHTML = "";
+            if (this.chatLogs.length === 0) {
+                globalChatDiv.innerHTML = `<div class="text-muted text-center py-4">No messages in global chat yet. Be the first to shout out to the realm!</div>`;
+            } else {
+                this.chatLogs.forEach(c => {
+                    const div = document.createElement("div");
+                    div.style.marginBottom = "8px";
+                    div.innerHTML = `<span class="text-muted" style="font-size:0.75rem;">[${new Date(c.time).toLocaleTimeString()}]</span> <strong class="text-warning">${c.sender}</strong>: <span style="color:#e0e0e0;">${c.msg}</span>`;
+                    globalChatDiv.appendChild(div);
+                });
+            }
+            globalChatDiv.scrollTop = globalChatDiv.scrollHeight;
         }
     }
 

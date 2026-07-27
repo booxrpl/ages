@@ -497,9 +497,25 @@ class GameController {
         });
 
         // Setup navbar tabs distributed logically
-        const tabs = ["town-center", "village-map", "manage-villagers", "economic-buildings", "military", "combat-arena", "marketplace", "nft-shop", "achievements", "leaderboard", "manager"];
+        const tabs = ["town-center", "village-map", "manage-villagers", "economic-buildings", "military", "combat-arena", "marketplace", "nft-shop", "achievements", "leaderboard", "manager", "global-chat"];
         tabs.forEach(tab => {
             document.getElementById(`tab-${tab}`)?.addEventListener("click", () => this.switchTab(tab));
+        });
+
+        const sendMsg = () => {
+            const input = document.getElementById("global-chat-input");
+            if (!input) return;
+            const text = input.value.trim();
+            if (text.length > 0) {
+                this.leaderboard.postChatMessage(this.state.username, text);
+                input.value = "";
+            }
+        };
+        document.getElementById("global-chat-send-btn")?.addEventListener("click", sendMsg);
+        document.getElementById("global-chat-input")?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                sendMsg();
+            }
         });
 
         document.getElementById("btn-click-food")?.addEventListener("click", () => this.manualGather("food"));
@@ -781,6 +797,8 @@ class GameController {
             this.renderVillageMap();
         } else if (this.activeTab === "achievements") {
             this.renderAchievements();
+        } else if (this.activeTab === "global-chat") {
+            this.leaderboard.renderChatConsole();
         }
     }
 

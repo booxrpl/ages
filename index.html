@@ -153,6 +153,9 @@
                     <button id="tab-leaderboard">
                         <span class="nav-icon">🏆</span> Leaderboard
                     </button>
+                    <button id="tab-global-chat">
+                        <span class="nav-icon">💬</span> Global Chat
+                    </button>
                     <button id="tab-manager">
                         <span class="nav-icon">🔑</span> Manager Portal
                     </button>
@@ -1176,6 +1179,24 @@
                                     <!-- Populated dynamically -->
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Global Chat -->
+                <section id="view-global-chat" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">💬 Global Lobby Chat 💬</h2>
+                        <p class="lead">Communicate and strategize in real-time with other online player empires.</p>
+                    </div>
+
+                    <div class="card p-4">
+                        <div class="card p-3 bg-black console-box text-left mb-3" id="global-chat-box" style="height: 350px; overflow-y: auto; font-family: monospace; color: #81c784; font-size: 0.95rem; line-height: 1.5; border: 1px solid var(--border-gold);">
+                            <div>[SYSTEM]: Connecting to global chat server...</div>
+                        </div>
+                        <div class="d-flex">
+                            <input type="text" id="global-chat-input" placeholder="Type your message to the realm..." style="flex-grow: 1; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px; margin-right: 10px;">
+                            <button id="global-chat-send-btn" class="btn btn-gold font-cinzel">SEND MESSAGE</button>
                         </div>
                     </div>
                 </section>
