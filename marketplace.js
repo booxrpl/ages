@@ -85,13 +85,13 @@ export class MarketplaceManager {
         };
     }
 
-    rentNFT(player, npcId, rentalId) {
-        const result = this.leaderboardManager.rentAssetFromNPC(npcId, rentalId, player.resources);
+    async rentNFT(player, ownerId, rentalId) {
+        const result = await this.leaderboardManager.rentAssetFromOnlinePlayer(ownerId, rentalId, player.resources);
         if (result.success) {
             player.resources.gold -= result.rental.cost;
             const rentalRecord = {
                 ...result.rental,
-                npcId: npcId,
+                npcId: ownerId,
                 timeLeft: result.rental.duration,
                 active: true
             };

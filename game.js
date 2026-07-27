@@ -221,11 +221,56 @@ class GameController {
     }
 
     init() {
+        this.state.playerId = this.state.playerId || "play_" + Math.random().toString(36).substring(2, 9);
         this.bindEvents();
         this.updateUI();
 
         if (this.state.registered) {
             this.startLoop();
+            
+            // First database sync
+            this.leaderboard.syncPlayerProfile(this.state).then(() => {
+                this.leaderboard.fetchChatLogs().then(() => {
+                    this.leaderboard.renderChatConsole();
+                });
+            });
+
+            // Set up background synchronization and real-time attack polling (every 10 seconds)
+            setInterval(async () => {
+                await this.leaderboard.syncPlayerProfile(this.state);
+                const alerts = await this.leaderboard.checkAttackNotifications(this.state.playerId);
+                if (alerts && alerts.length > 0) {
+                    alerts.forEach(alert => {
+                        this.showToast(alert.title, alert.msg, alert.alertType);
+                        if (alert.type === "attack" || alert.type === "rented_alert") {
+                            this.syncLocalStateWithDB();
+                        }
+                    });
+                }
+                await this.leaderboard.fetchChatLogs();
+                this.leaderboard.renderChatConsole();
+            }, 10000);
+        }
+    }
+
+    async syncLocalStateWithDB() {
+        const list = await this.leaderboard.fetchOnlineLeaderboard();
+        const profile = list.find(p => p.id === this.state.playerId);
+        if (profile) {
+            this.state.resources = { ...profile.resources };
+            this.state.military = { ...profile.military };
+            
+            // Adjust villager list count
+            const countDiff = this.state.villagerList.length - profile.villagers;
+            if (countDiff > 0) {
+                this.state.villagerList = this.state.villagerList.slice(0, profile.villagers);
+                if (this.state.villagerList.length === 0) {
+                    this.state.villagerList.push({ id: 1001, name: "Worker #1001", hp: 10, maxHp: 100, specialty: "General", role: "idle" });
+                }
+            }
+            this.saveState();
+            this.updateUI();
+            this.updateResourceUI();
         }
     }
 
@@ -251,12 +296,7 @@ class GameController {
         this.toggleStorageFullAlerts(storageLimit);
         this.updateAgeResearchTick();
 
-        const npcEvents = this.leaderboard.updateNPCTick(this.state);
-        if (npcEvents && npcEvents.length > 0) {
-            npcEvents.forEach(evt => {
-                this.showToast(evt.title, evt.msg, evt.alertType);
-            });
-        }
+        // Active NPC checks removed for real online players in tick
         this.marketplace.updateMarketplaceTick(this.state);
 
         this.saveState();
@@ -749,49 +789,73 @@ class GameController {
         if (!tbody) return;
         tbody.innerHTML = "";
 
-        const npcs = this.leaderboard.npcs;
-        npcs.forEach(npc => {
-            const armyCount = (npc.military.spearmen || 0) + (npc.military.archers || 0) + 
-                            (npc.military.knights || 0) + (npc.military.champions || 0);
+        const players = this.leaderboard.onlinePlayers;
+        players.forEach(p => {
+            const armyCount = (p.military.spearmen || 0) + (p.military.archers || 0) + 
+                            (p.military.knights || 0) + (p.military.champions || 0) +
+                            (p.military.catapults || 0);
             
             const tr = document.createElement("tr");
             tr.innerHTML = `
-                <td><strong>${npc.name}</strong></td>
-                <td>${npc.civ}</td>
-                <td>⚔️ ${npc.power}</td>
-                <td>🍖 ${Math.floor(npc.resources.food)}</td>
-                <td>🪵 ${Math.floor(npc.resources.wood)}</td>
-                <td>🪙 ${Math.floor(npc.resources.gold)}</td>
-                <td>🪨 ${Math.floor(npc.resources.stone)}</td>
+                <td>
+                    <strong>${p.name}</strong>
+                    ${p.id === this.state.playerId ? ' <span class="badge badge-warning">YOU</span>' : ''}
+                </td>
+                <td>${p.civ}</td>
+                <td>⚔️ ${p.power}</td>
+                <td>🍖 ${Math.floor(p.resources.food)}</td>
+                <td>🪵 ${Math.floor(p.resources.wood)}</td>
+                <td>🪙 ${Math.floor(p.resources.gold)}</td>
+                <td>🪨 ${Math.floor(p.resources.stone)}</td>
                 <td>🛡️ ${armyCount}</td>
                 <td>
-                    <button class="btn btn-outline-warning btn-xs mb-1" onclick="window.game.adminGrantNPCGold('${npc.id}')">Grant 5K Gold</button>
-                    <button class="btn btn-outline-danger btn-xs" onclick="window.game.adminWipeNPCArmy('${npc.id}')">Wipe Army</button>
+                    <button class="btn btn-outline-warning btn-xs mb-1" onclick="window.game.adminGrantNPCGold('${p.id}')">Grant 5K Gold</button>
+                    <button class="btn btn-outline-danger btn-xs" onclick="window.game.adminWipeNPCArmy('${p.id}')">Wipe Army</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    adminGrantNPCGold(npcId) {
-        const npcIndex = this.leaderboard.npcs.findIndex(n => n.id === npcId);
-        if (npcIndex !== -1) {
-            this.leaderboard.npcs[npcIndex].resources.gold += 5000;
-            this.leaderboard.saveLeaderboard();
-            this.renderManager();
-            alert(`🪙 Archon Power: Granted 5,000 gold to ${this.leaderboard.npcs[npcIndex].name}`);
-        }
+    adminGrantNPCGold(playerId) {
+        this.leaderboard.fetchOnlineLeaderboard().then(async (list) => {
+            const idx = list.findIndex(p => p.id === playerId);
+            if (idx !== -1) {
+                list[idx].resources.gold += 5000;
+                await this.leaderboard.saveOnlineLeaderboard(list);
+                
+                // If targeting self, update local state
+                if (playerId === this.state.playerId) {
+                    this.state.resources.gold += 5000;
+                    this.saveState();
+                    this.updateUI();
+                }
+                
+                this.renderManager();
+                alert(`🪙 Archon Power: Granted 5,000 gold to ${list[idx].name}`);
+            }
+        });
     }
 
-    adminWipeNPCArmy(npcId) {
-        const npcIndex = this.leaderboard.npcs.findIndex(n => n.id === npcId);
-        if (npcIndex !== -1) {
-            this.leaderboard.npcs[npcIndex].military = { spearmen: 0, archers: 0, knights: 0, champions: 0 };
-            this.leaderboard.npcs[npcIndex].power = 1000; // Base baseline
-            this.leaderboard.saveLeaderboard();
-            this.renderManager();
-            alert(`💀 Archon Power: Standing army of ${this.leaderboard.npcs[npcIndex].name} has been completely vaporized.`);
-        }
+    adminWipeNPCArmy(playerId) {
+        this.leaderboard.fetchOnlineLeaderboard().then(async (list) => {
+            const idx = list.findIndex(p => p.id === playerId);
+            if (idx !== -1) {
+                list[idx].military = { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 };
+                list[idx].power = this.leaderboard.calculatePower(list[idx]);
+                await this.leaderboard.saveOnlineLeaderboard(list);
+
+                // If targeting self, update local state
+                if (playerId === this.state.playerId) {
+                    this.state.military = { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 };
+                    this.saveState();
+                    this.updateUI();
+                }
+
+                this.renderManager();
+                alert(`💀 Archon Power: Standing army of ${list[idx].name} has been completely vaporized.`);
+            }
+        });
     }
 
     showToast(title, msg, type = "info") {
@@ -1932,9 +1996,22 @@ class GameController {
         `;
         mapContainer.appendChild(userNode);
 
-        const targets = this.leaderboard.npcs;
+        const targets = this.leaderboard.onlinePlayers.filter(p => p.id !== this.state.playerId);
+        
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("style", "position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;");
+
         targets.forEach(target => {
-            const coords = coordinates[target.id] || { x: 50, y: 50 };
+            // Stable hashed coordinates based on player ID string
+            let hash = 0;
+            for (let c = 0; c < target.id.length; c++) {
+                hash = target.id.charCodeAt(c) + ((hash << 5) - hash);
+            }
+            const coords = {
+                x: 18 + Math.abs(hash % 65), // limit 18% to 83%
+                y: 15 + Math.abs((hash >> 8) % 65)  // limit 15% to 80%
+            };
+
             const node = document.createElement("div");
             const isAllied = this.state.allies && this.state.allies.includes(target.id);
             node.className = `map-kingdom-node ${isAllied ? 'node-ally-kingdom' : ''}`;
@@ -1946,7 +2023,7 @@ class GameController {
             else if (target.power > 7800) npcIcon = "🏰";
             else if (target.power > 7000) npcIcon = "🪵";
 
-            const size = Math.max(70, Math.min(115, 70 + (target.power - 7000) / 40));
+            const size = Math.max(70, Math.min(115, 70 + (target.power - 1000) / 100));
 
             let houses = "🏡🌳";
             if (size > 95) houses = "🏡🌳🏰🌳🏡";
@@ -1965,23 +2042,16 @@ class GameController {
                     </div>
                 </div>
                 <div class="map-kingdom-label font-cinzel">
-                    ${target.name.replace(/ \(.+\)/, "")} ${isAllied ? '🤝' : ''}
+                    ${target.name} ${isAllied ? '🤝' : ''}
                     <span class="map-kingdom-power">${isAllied ? 'ALLY' : 'Power: ' + target.power}</span>
                 </div>
             `;
 
             node.addEventListener("click", () => this.selectMapTarget(target));
             mapContainer.appendChild(node);
-        });
 
-        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        svg.setAttribute("style", "position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1;");
-        targets.forEach(target => {
-            const coords = coordinates[target.id];
-            if (!coords) return;
+            // Draw line
             const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            const isAllied = this.state.allies && this.state.allies.includes(target.id);
-            
             line.setAttribute("x1", "15%");
             line.setAttribute("y1", "75%");
             line.setAttribute("x2", `${coords.x + 5}%`);
@@ -2305,17 +2375,35 @@ class GameController {
             deadWorkers = deadWorkers.filter(name => name !== "Worker #1001");
         }
 
-        const npcIndex = this.leaderboard.npcs.findIndex(n => n.id === target.id);
-        if (npcIndex !== -1) {
-            this.leaderboard.npcs[npcIndex].military = result.defenderRemainingMilitary;
-            if (result.winner === "Attacker") {
-                this.leaderboard.npcs[npcIndex].resources.food = Math.max(0, this.leaderboard.npcs[npcIndex].resources.food - result.loot.food);
-                this.leaderboard.npcs[npcIndex].resources.wood = Math.max(0, this.leaderboard.npcs[npcIndex].resources.wood - result.loot.wood);
-                this.leaderboard.npcs[npcIndex].resources.gold = Math.max(0, this.leaderboard.npcs[npcIndex].resources.gold - result.loot.gold);
-                this.leaderboard.npcs[npcIndex].resources.stone = Math.max(0, this.leaderboard.npcs[npcIndex].resources.stone - result.loot.stone);
+        // Update online defender stats dynamically in database
+        this.leaderboard.fetchOnlineLeaderboard().then(async (list) => {
+            const targetIndex = list.findIndex(p => p.id === target.id);
+            if (targetIndex !== -1) {
+                list[targetIndex].military = result.defenderRemainingMilitary;
+                if (result.winner === "Attacker") {
+                    list[targetIndex].resources.food = Math.max(0, list[targetIndex].resources.food - result.loot.food);
+                    list[targetIndex].resources.wood = Math.max(0, list[targetIndex].resources.wood - result.loot.wood);
+                    list[targetIndex].resources.gold = Math.max(0, list[targetIndex].resources.gold - result.loot.gold);
+                    list[targetIndex].resources.stone = Math.max(0, list[targetIndex].resources.stone - result.loot.stone);
+                }
+                
+                // Save database
+                await this.leaderboard.saveOnlineLeaderboard(list);
+
+                // Queue attack notification for target player
+                await this.leaderboard.queueAttackNotification(target.id, {
+                    type: "attack",
+                    title: `💥 Under Attack: Raided by ${this.state.username}`,
+                    msg: `Plundered: 🍖 ${result.loot.food} Food, 🪙 ${result.loot.gold} Gold. Structural damage sustained.`,
+                    alertType: "danger"
+                });
+
+                // Post chat update
+                await this.leaderboard.postChatMessage("SERVER", `⚔️ combat resolve: '${this.state.username}' raided '${target.name}'! Outcome: ${result.winner === "Attacker" ? "PLUNDERED" : "REPELLED"}.`);
             }
-            this.leaderboard.saveLeaderboard();
-        }
+            // Sync player's own updated stats online
+            await this.leaderboard.syncPlayerProfile(this.state);
+        });
 
         this.state.combatPoints = Math.max(0, this.state.combatPoints + result.points);
         
@@ -2560,8 +2648,8 @@ class GameController {
         }
     }
 
-    executeRentNFT(npcId, rentalId) {
-        const result = this.marketplace.rentNFT(this.state, npcId, rentalId);
+    async executeRentNFT(npcId, rentalId) {
+        const result = await this.marketplace.rentNFT(this.state, npcId, rentalId);
         if (result.success) {
             this.saveState();
             this.updateResourceUI();
@@ -2608,6 +2696,7 @@ class GameController {
         const result = this.marketplace.listPlayerAsset(assetName, assetType, costGold, duration);
         if (result.success) {
             this.saveState();
+            this.leaderboard.syncPlayerProfile(this.state);
             this.renderMarketplace();
             alert(result.message);
         }
@@ -2618,23 +2707,52 @@ class GameController {
         if (!tbody) return;
         tbody.innerHTML = "";
 
-        const allPlayers = this.leaderboard.getLeaderboard(this.state);
-        allPlayers.forEach((player, index) => {
-            const tr = document.createElement("tr");
-            if (player.isUser) {
-                tr.className = "table-highlight";
+        this.leaderboard.getLeaderboard(this.state).then(allPlayers => {
+            tbody.innerHTML = ""; // Clear again to avoid duplicates
+            
+            // Filter list to make sure we show user as well
+            const userIndex = allPlayers.findIndex(p => p.id === this.state.playerId);
+            if (userIndex === -1 && this.state.registered) {
+                const playerPower = this.leaderboard.calculatePower(this.state);
+                allPlayers.push({
+                    id: this.state.playerId,
+                    name: this.state.username,
+                    civ: this.state.civ,
+                    civPerk: this.state.civPerk || "",
+                    villagers: this.state.nfts.villagers || 1,
+                    military: { ...this.state.military },
+                    resources: { ...this.state.resources },
+                    agesToken: this.state.agesToken || 0,
+                    power: playerPower,
+                    isUser: true
+                });
+                allPlayers.sort((a, b) => b.power - a.power);
             }
-            tr.innerHTML = `
-                <td><strong>#${index + 1}</strong></td>
-                <td>
-                    <span class="player-name-lbl">${player.name}</span>
-                    ${player.isUser ? ' <span class="badge badge-warning">YOU</span>' : ''}
-                </td>
-                <td>${player.civ}</td>
-                <td>⚔️ ${player.power}</td>
-                <td>🍖 ${Math.floor(player.resources.food)} | 🪵 ${Math.floor(player.resources.wood)} | 🪙 ${Math.floor(player.resources.gold)}</td>
-            `;
-            tbody.appendChild(tr);
+
+            allPlayers.forEach((player, index) => {
+                const tr = document.createElement("tr");
+                const isSelf = player.id === this.state.playerId;
+                if (isSelf) {
+                    tr.className = "table-highlight";
+                }
+                tr.innerHTML = `
+                    <td><strong>#${index + 1}</strong></td>
+                    <td>
+                        <span class="player-name-lbl">${player.name}</span>
+                        ${isSelf ? ' <span class="badge badge-warning">YOU</span>' : ''}
+                    </td>
+                    <td>${player.civ}</td>
+                    <td>⚔️ ${player.power}</td>
+                    <td>🍖 ${Math.floor(player.resources.food)} | 🪵 ${Math.floor(player.resources.wood)} | 🪙 ${Math.floor(player.resources.gold)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (allPlayers.length === 0 || (allPlayers.length === 1 && this.state.registered && allPlayers[0].id === this.state.playerId)) {
+                const emptyTr = document.createElement("tr");
+                emptyTr.innerHTML = `<td colspan="5" class="text-center text-muted py-3 font-cinzel">No other online empires registered yet. Invite friends to colonize the realm!</td>`;
+                tbody.appendChild(emptyTr);
+            }
         });
     }
 
