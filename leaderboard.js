@@ -1,4 +1,4 @@
-// Real-time Online Leaderboard, Combat Notifications, and Global Chat via Vercel serverless API
+// Real-time Online Leaderboard, Combat Notifications, and Global Chat via direct KVdb.io access
 import { CombatEngine } from './combat.js';
 
 export class LeaderboardManager {
@@ -6,17 +6,21 @@ export class LeaderboardManager {
         this.npcs = []; // NPCs completely removed! Only real online players.
         this.chatLogs = [];
         this.onlinePlayers = [];
+        this.bucketBase = "https://kvdb.io/MwaQM3fZ1UWw1ae78w3NbM";
     }
 
     async fetchOnlineLeaderboard() {
         try {
-            const response = await fetch("/api/leaderboard");
+            const response = await fetch(`${this.bucketBase}/leaderboard`);
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     this.onlinePlayers = data;
                     return data;
                 }
+            } else if (response.status === 404) {
+                this.onlinePlayers = [];
+                return [];
             }
         } catch (e) {
             console.error("Failed to fetch online leaderboard", e);
@@ -27,9 +31,8 @@ export class LeaderboardManager {
     async saveOnlineLeaderboard(list) {
         this.onlinePlayers = list;
         try {
-            await fetch("/api/leaderboard", {
+            await fetch(`${this.bucketBase}/leaderboard`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(list)
             });
         } catch (e) {
@@ -92,13 +95,27 @@ export class LeaderboardManager {
 
     async queueAttackNotification(targetId, attackDetails) {
         try {
-            await fetch("/api/attack", {
+            const keyUrl = `${this.bucketBase}/attack_${targetId}`;
+            const response = await fetch(keyUrl);
+            let alerts = [];
+            if (response.ok) {
+                const text = await response.text();
+                if (text && text.trim().length > 0) {
+                    try {
+                        alerts = JSON.parse(text);
+                    } catch(e) {}
+                }
+            }
+            if (!Array.isArray(alerts)) {
+                alerts = [];
+            }
+            alerts.push({
+                time: Date.now(),
+                ...attackDetails
+            });
+            await fetch(keyUrl, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    targetId: targetId,
-                    alert: attackDetails
-                })
+                body: JSON.stringify(alerts)
             });
         } catch (e) {
             console.error("Failed to queue attack alert", e);
@@ -107,11 +124,28 @@ export class LeaderboardManager {
 
     async checkAttackNotifications(playerId) {
         try {
-            const response = await fetch(`/api/attack?playerId=${playerId}`);
+            const keyUrl = `${this.bucketBase}/attack_${playerId}`;
+            const response = await fetch(keyUrl);
+            let alerts = [];
             if (response.ok) {
-                const alerts = await response.json();
-                return alerts;
+                const text = await response.text();
+                if (text && text.trim().length > 0) {
+                    try {
+                        alerts = JSON.parse(text);
+                    } catch(e) {}
+                }
             }
+            if (!Array.isArray(alerts)) {
+                alerts = [];
+            }
+            // Clear alert list
+            if (alerts.length > 0) {
+                await fetch(keyUrl, {
+                    method: "POST",
+                    body: JSON.stringify([])
+                });
+            }
+            return alerts;
         } catch (e) {
             console.error("Failed to check attack notifications", e);
         }
@@ -121,13 +155,16 @@ export class LeaderboardManager {
     // Chat Logs online sync
     async fetchChatLogs() {
         try {
-            const response = await fetch("/api/chat");
+            const response = await fetch(`${this.bucketBase}/chat`);
             if (response.ok) {
                 const data = await response.json();
                 if (Array.isArray(data)) {
                     this.chatLogs = data;
                     return data;
                 }
+            } else if (response.status === 404) {
+                this.chatLogs = [];
+                return [];
             }
         } catch (e) {
             console.error("Failed to load chat logs", e);
@@ -137,15 +174,26 @@ export class LeaderboardManager {
 
     async postChatMessage(sender, msg) {
         try {
-            const response = await fetch("/api/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ sender, msg })
-            });
+            const keyUrl = `${this.bucketBase}/chat`;
+            let chat = [];
+            const response = await fetch(keyUrl);
             if (response.ok) {
-                const data = await response.json();
-                this.chatLogs = data;
+                try {
+                    chat = await response.json();
+                } catch(e) {}
             }
+            if (!Array.isArray(chat)) {
+                chat = [];
+            }
+
+            chat.push({ time: Date.now(), sender, msg });
+            const trimmed = chat.slice(-40);
+
+            await fetch(keyUrl, {
+                method: "POST",
+                body: JSON.stringify(trimmed)
+            });
+            this.chatLogs = trimmed;
         } catch (e) {
             console.error("Failed to post chat message", e);
         }
