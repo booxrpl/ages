@@ -147,6 +147,9 @@
                     <button id="tab-leaderboard">
                         <span class="nav-icon">🏆</span> Leaderboard
                     </button>
+                    <button id="tab-manager">
+                        <span class="nav-icon">🔑</span> Manager Portal
+                    </button>
                 </nav>
                 <div class="sidebar-footer">
                     <button id="reset-game-btn" class="btn btn-outline-danger btn-xs w-100">RESET PROGRESS</button>
@@ -1142,6 +1145,111 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- View: Manager Portal (Protected) -->
+                <section id="view-manager" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">🛡️ Archon Faction Command Center 🛡️</h2>
+                        <p class="lead">Universal game-master controls: manipulate time, epochs, grant infinite resource vaults, and monitor other players.</p>
+                    </div>
+
+                    <div class="row">
+                        <!-- Epoch manipulation -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-4 h-100">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Archon Epoch Time Travel</h3>
+                                <p class="small text-muted mb-3 font-cinzel">Instantly advance or roll back your civilization to any Age. This clears pending research timers.</p>
+                                <div class="row">
+                                    <div class="col-6 mb-2">
+                                        <button id="admin-set-age-1" class="btn btn-gold btn-sm w-100 font-cinzel">Dark Age (Lvl 1)</button>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <button id="admin-set-age-2" class="btn btn-gold btn-sm w-100 font-cinzel">Feudal Age (Lvl 2)</button>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <button id="admin-set-age-3" class="btn btn-gold btn-sm w-100 font-cinzel">Castle Age (Lvl 3)</button>
+                                    </div>
+                                    <div class="col-6 mb-2">
+                                        <button id="admin-set-age-4" class="btn btn-gold btn-sm w-100 font-cinzel">Imperial Age (Lvl 4)</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Resource Grant -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-4 h-100">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Archon Vault Allocation</h3>
+                                <p class="small text-muted mb-3 font-cinzel">Inject assets directly into your treasury vaults. (Bypasses storage capacity limits)</p>
+                                
+                                <div class="row mt-2">
+                                    <div class="col-4 mb-2">
+                                        <label class="small text-muted font-cinzel">🍖 Food</label>
+                                        <input type="number" id="admin-grant-food" value="1000" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px;">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="small text-muted font-cinzel">🪵 Wood</label>
+                                        <input type="number" id="admin-grant-wood" value="1000" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px;">
+                                    </div>
+                                    <div class="col-4 mb-2">
+                                        <label class="small text-muted font-cinzel">🪙 Gold</label>
+                                        <input type="number" id="admin-grant-gold" value="1000" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px;">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-muted font-cinzel">🪨 Stone</label>
+                                        <input type="number" id="admin-grant-stone" value="1000" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px;">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-muted font-cinzel">💎 $AGES</label>
+                                        <input type="number" id="admin-grant-ages" value="100" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px;">
+                                    </div>
+                                </div>
+                                <button id="admin-btn-grant" class="btn btn-gold w-100 mt-3 font-cinzel">GRANT TREASURE</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Faction Registry (NPC Resource inspection and modifications) -->
+                    <div class="card p-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">Simulated Factions & NPC Registries</h3>
+                        <div class="table-responsive">
+                            <table class="table text-left">
+                                <thead>
+                                    <tr>
+                                        <th>NPC Player</th>
+                                        <th>Civilization</th>
+                                        <th>Power</th>
+                                        <th>Food</th>
+                                        <th>Wood</th>
+                                        <th>Gold</th>
+                                        <th>Stone</th>
+                                        <th>Army Size</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-npcs-tbody">
+                                    <!-- Populated dynamically by game.js -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Password Auth Modal for Manager -->
+                <div id="manager-auth-modal" class="modal-wrapper hidden">
+                    <div class="modal-card text-center p-4" style="max-width: 400px;">
+                        <div class="modal-header d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="font-cinzel text-warning m-0">🔑 Enter Archon Password</h3>
+                            <button id="close-auth-modal" class="close-btn">&times;</button>
+                        </div>
+                        <p class="small text-muted mb-4 font-cinzel">This command panel is restricted to the Royal Manager. Enter password below to authenticate.</p>
+                        <div class="form-group text-left mb-3">
+                            <label for="manager-password-input" class="small text-muted font-cinzel">Archon Passkey</label>
+                            <input type="password" id="manager-password-input" placeholder="Enter key..." style="width: 100%; padding: 8px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px; font-size: 1rem;">
+                        </div>
+                        <button id="btn-submit-auth" class="btn btn-gold w-100 font-cinzel">AUTHENTICATE</button>
+                    </div>
+                </div>
 
             </main>
         </div>

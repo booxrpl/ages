@@ -11,6 +11,7 @@ class GameController {
         this.tickInterval = null;
         this.activeTab = "town-center";
         this.selectedTarget = null; // Currently selected map target
+        this.adminAuthenticated = false;
 
         this.init();
     }
@@ -254,6 +255,8 @@ class GameController {
             this.renderLeaderboard();
         } else if (this.activeTab === "marketplace") {
             this.renderMarketplace();
+        } else if (this.activeTab === "manager") {
+            this.renderManager();
         }
     }
 
@@ -586,6 +589,70 @@ class GameController {
             }, 1500);
         });
 
+        // Admin/Manager auth modal handlers
+        document.getElementById("close-auth-modal")?.addEventListener("click", () => {
+            document.getElementById("manager-auth-modal")?.classList.add("hidden");
+        });
+
+        const executeAuth = () => {
+            const pwInput = document.getElementById("manager-password-input");
+            const pw = pwInput ? pwInput.value.trim() : "";
+            if (pw === "boo") {
+                this.adminAuthenticated = true;
+                document.getElementById("manager-auth-modal")?.classList.add("hidden");
+                this.switchTab("manager");
+                alert("✨ Access Granted. Welcome back, Royal Archon.");
+            } else {
+                alert("⚠️ Access Denied: Invalid Passkey.");
+            }
+        };
+
+        document.getElementById("btn-submit-auth")?.addEventListener("click", executeAuth);
+        document.getElementById("manager-password-input")?.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") executeAuth();
+        });
+
+        // Epoch manipulator setters
+        const setAgeAdmin = (level, name) => {
+            this.state.ageLevel = level;
+            this.state.currentAge = name;
+            this.state.ageUpgradeProgress = {
+                active: false,
+                targetAge: "",
+                targetLevel: 0,
+                startTime: 0,
+                endTime: 0
+            };
+            this.saveState();
+            this.updateUI();
+            alert(`🕰️ Time Travel Active: Civilization set to ${name} (Level ${level})`);
+        };
+
+        document.getElementById("admin-set-age-1")?.addEventListener("click", () => setAgeAdmin(1, "Dark Age"));
+        document.getElementById("admin-set-age-2")?.addEventListener("click", () => setAgeAdmin(2, "Feudal Age"));
+        document.getElementById("admin-set-age-3")?.addEventListener("click", () => setAgeAdmin(3, "Castle Age"));
+        document.getElementById("admin-set-age-4")?.addEventListener("click", () => setAgeAdmin(4, "Imperial Age"));
+
+        // Resource Grant allocations
+        document.getElementById("admin-btn-grant")?.addEventListener("click", () => {
+            const foodVal = Math.floor(parseFloat(document.getElementById("admin-grant-food").value) || 0);
+            const woodVal = Math.floor(parseFloat(document.getElementById("admin-grant-wood").value) || 0);
+            const goldVal = Math.floor(parseFloat(document.getElementById("admin-grant-gold").value) || 0);
+            const stoneVal = Math.floor(parseFloat(document.getElementById("admin-grant-stone").value) || 0);
+            const agesVal = Math.floor(parseFloat(document.getElementById("admin-grant-ages").value) || 0);
+
+            this.state.resources.food += foodVal;
+            this.state.resources.wood += woodVal;
+            this.state.resources.gold += goldVal;
+            this.state.resources.stone += stoneVal;
+            this.state.agesToken += agesVal;
+
+            this.saveState();
+            this.updateUI();
+            this.updateResourceUI();
+            alert(`🎁 Treasury Credited successfully! Allocated resources to your faction vaults.`);
+        });
+
         document.getElementById("reset-game-btn")?.addEventListener("click", () => {
             if (confirm("Are you sure you want to reset all game progress, NFTs, and local balances?")) {
                 this.resetState();
@@ -594,6 +661,16 @@ class GameController {
     }
 
     switchTab(tabName) {
+        if (tabName === "manager" && !this.adminAuthenticated) {
+            document.getElementById("manager-auth-modal")?.classList.remove("hidden");
+            const pwInput = document.getElementById("manager-password-input");
+            if (pwInput) {
+                pwInput.value = "";
+                pwInput.focus();
+            }
+            return;
+        }
+
         this.activeTab = tabName;
         document.querySelectorAll(".tab-view").forEach(view => view.classList.add("hidden"));
         document.getElementById(`view-${tabName}`)?.classList.remove("hidden");
@@ -636,6 +713,58 @@ class GameController {
             this.renderMarketplace();
         } else if (this.activeTab === "leaderboard") {
             this.renderLeaderboard();
+        } else if (this.activeTab === "manager") {
+            this.renderManager();
+        }
+    }
+
+    renderManager() {
+        const tbody = document.getElementById("admin-npcs-tbody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        const npcs = this.leaderboard.npcs;
+        npcs.forEach(npc => {
+            const armyCount = (npc.military.spearmen || 0) + (npc.military.archers || 0) + 
+                            (npc.military.knights || 0) + (npc.military.champions || 0);
+            
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+                <td><strong>${npc.name}</strong></td>
+                <td>${npc.civ}</td>
+                <td>⚔️ ${npc.power}</td>
+                <td>🍖 ${Math.floor(npc.resources.food)}</td>
+                <td>🪵 ${Math.floor(npc.resources.wood)}</td>
+                <td>🪙 ${Math.floor(npc.resources.gold)}</td>
+                <td>🪨 ${Math.floor(npc.resources.stone)}</td>
+                <td>🛡️ ${armyCount}</td>
+                <td>
+                    <button class="btn btn-outline-warning btn-xs mb-1" onclick="window.game.adminGrantNPCGold('${npc.id}')">Grant 5K Gold</button>
+                    <button class="btn btn-outline-danger btn-xs" onclick="window.game.adminWipeNPCArmy('${npc.id}')">Wipe Army</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    adminGrantNPCGold(npcId) {
+        const npcIndex = this.leaderboard.npcs.findIndex(n => n.id === npcId);
+        if (npcIndex !== -1) {
+            this.leaderboard.npcs[npcIndex].resources.gold += 5000;
+            this.leaderboard.saveLeaderboard();
+            this.renderManager();
+            alert(`🪙 Archon Power: Granted 5,000 gold to ${this.leaderboard.npcs[npcIndex].name}`);
+        }
+    }
+
+    adminWipeNPCArmy(npcId) {
+        const npcIndex = this.leaderboard.npcs.findIndex(n => n.id === npcId);
+        if (npcIndex !== -1) {
+            this.leaderboard.npcs[npcIndex].military = { spearmen: 0, archers: 0, knights: 0, champions: 0 };
+            this.leaderboard.npcs[npcIndex].power = 1000; // Base baseline
+            this.leaderboard.saveLeaderboard();
+            this.renderManager();
+            alert(`💀 Archon Power: Standing army of ${this.leaderboard.npcs[npcIndex].name} has been completely vaporized.`);
         }
     }
 
