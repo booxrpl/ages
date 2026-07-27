@@ -1,3 +1,84 @@
+const https = require('https');
+
+function httpsGet(url) {
+    return new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    try {
+                        resolve(JSON.parse(data));
+                    } catch (e) {
+                        resolve(data);
+                    }
+                } else if (res.statusCode === 404) {
+                    resolve(null);
+                } else {
+                    reject(new Error(`Status Code: ${res.statusCode}`));
+                }
+            });
+        }).on('error', (err) => {
+            reject(err);
+        });
+    });
+}
+
+function httpsPost(url, payload) {
+    return new Promise((resolve, reject) => {
+        const parsedUrl = new URL(url);
+        const options = {
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': Buffer.byteLength(payload)
+            }
+        };
+
+        const req = https.request(options, (res) => {
+            let data = '';
+            res.on('data', (chunk) => { data += chunk; });
+            res.on('end', () => {
+                if (res.statusCode >= 200 && res.statusCode < 300) {
+                    resolve(data);
+                } else {
+                    reject(new Error(`Status Code: ${res.statusCode}`));
+                }
+            });
+        });
+
+        req.on('error', (err) => {
+            reject(err);
+        });
+
+        req.write(payload);
+        req.end();
+    });
+}
+
+async function getBody(req) {
+    if (req.body) {
+        let body = req.body;
+        if (typeof body === 'string') {
+            try { body = JSON.parse(body); } catch (e) {}
+        }
+        return body;
+    }
+    return new Promise((resolve) => {
+        let body = '';
+        req.on('data', chunk => { body += chunk.toString(); });
+        req.on('end', () => {
+            try {
+                resolve(JSON.parse(body));
+            } catch (e) {
+                resolve(body);
+            }
+        });
+    });
+}
+
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -14,20 +95,13 @@ module.exports = async (req, res) => {
         const keyUrl = `https://kvdb.io/ages_of_memes_prod_v5/attack_${playerId}`;
 
         try {
-            const response = await fetch(keyUrl);
-            let alerts = [];
-            if (response.ok) {
-                const text = await response.text();
-                if (text && text.trim().length > 0) {
-                    alerts = JSON.parse(text);
-                }
+            let alerts = await httpsGet(keyUrl);
+            if (!Array.isArray(alerts)) {
+                alerts = [];
             }
 
             // Clear alert list
-            await fetch(keyUrl, {
-                method: "POST",
-                body: JSON.stringify([])
-            });
+            await httpsPost(keyUrl, JSON.stringify([]));
 
             return res.status(200).json(alerts);
         } catch (e) {
@@ -36,24 +110,15 @@ module.exports = async (req, res) => {
     }
 
     if (req.method === 'POST') {
-        let body = req.body;
-        if (typeof body === 'string') {
-            try {
-                body = JSON.parse(body);
-            } catch(e) {}
-        }
-        const { targetId, alert } = body || {};
-        if (!targetId || !alert) return res.status(400).json({ error: "targetId and alert required" });
-        const keyUrl = `https://kvdb.io/ages_of_memes_prod_v5/attack_${targetId}`;
-
         try {
-            const response = await fetch(keyUrl);
-            let alerts = [];
-            if (response.ok) {
-                const text = await response.text();
-                if (text && text.trim().length > 0) {
-                    alerts = JSON.parse(text);
-                }
+            const body = await getBody(req);
+            const { targetId, alert } = body || {};
+            if (!targetId || !alert) return res.status(400).json({ error: "targetId and alert required" });
+            const keyUrl = `https://kvdb.io/ages_of_memes_prod_v5/attack_${targetId}`;
+
+            let alerts = await httpsGet(keyUrl);
+            if (!Array.isArray(alerts)) {
+                alerts = [];
             }
 
             alerts.push({
@@ -61,11 +126,7 @@ module.exports = async (req, res) => {
                 ...alert
             });
 
-            await fetch(keyUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(alerts)
-            });
+            await httpsPost(keyUrl, JSON.stringify(alerts));
 
             return res.status(200).json({ success: true });
         } catch (e) {
