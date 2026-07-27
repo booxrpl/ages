@@ -92,7 +92,7 @@ module.exports = async (req, res) => {
 
     if (req.method === 'GET') {
         if (!playerId) return res.status(400).json({ error: "playerId required" });
-        const keyUrl = `https://kvdb.io/ages_of_memes_prod_v5/attack_${playerId}`;
+        const keyUrl = `https://kvdb.io/MwaQM3fZ1UWw1ae78w3NbM/attack_${playerId}`;
 
         try {
             let alerts = await httpsGet(keyUrl);
@@ -114,7 +114,7 @@ module.exports = async (req, res) => {
             const body = await getBody(req);
             const { targetId, alert } = body || {};
             if (!targetId || !alert) return res.status(400).json({ error: "targetId and alert required" });
-            const keyUrl = `https://kvdb.io/ages_of_memes_prod_v5/attack_${targetId}`;
+            const keyUrl = `https://kvdb.io/MwaQM3fZ1UWw1ae78w3NbM/attack_${targetId}`;
 
             let alerts = await httpsGet(keyUrl);
             if (!Array.isArray(alerts)) {

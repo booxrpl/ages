@@ -80,7 +80,7 @@ async function getBody(req) {
 }
 
 module.exports = async (req, res) => {
-    const bucketUrl = "https://kvdb.io/ages_of_memes_prod_v5/leaderboard";
+    const bucketUrl = "https://kvdb.io/MwaQM3fZ1UWw1ae78w3NbM/leaderboard";
     
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');

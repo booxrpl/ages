@@ -57,7 +57,7 @@ function httpsPost(url, payload) {
 }
 
 module.exports = async (req, res) => {
-    const testUrl = "https://kvdb.io/23XjQ44yVh1GsdVMcZ179s/test_key";
+    const testUrl = "https://kvdb.io/MwaQM3fZ1UWw1ae78w3NbM/test_key";
     let results = {};
     
     try {
