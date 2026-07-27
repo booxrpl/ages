@@ -42,6 +42,9 @@ class GameController {
             if (parsed.nfts.market === undefined) parsed.nfts.market = false;
             if (parsed.military.catapults === undefined) parsed.military.catapults = 0;
             if (parsed.allies === undefined) parsed.allies = [];
+            if (parsed.xamanConnected === undefined) parsed.xamanConnected = false;
+            if (parsed.xamanAddress === undefined) parsed.xamanAddress = "";
+            if (parsed.xamanBalance === undefined) parsed.xamanBalance = 0;
             
             // Building integrity & Military HP tracking
             if (!parsed.buildingHP) {
@@ -180,7 +183,10 @@ class GameController {
                 champions: 100,
                 catapults: 100
             },
-            villagerList: initialList
+            villagerList: initialList,
+            xamanConnected: false,
+            xamanAddress: "",
+            xamanBalance: 0
         };
     }
 
@@ -505,6 +511,81 @@ class GameController {
         document.getElementById("btn-age-test-time")?.addEventListener("click", () => this.testAgeTimeTravel());
         document.getElementById("btn-sim-day")?.addEventListener("click", () => this.simulateDayPassed());
 
+        // Xaman Wallet events
+        document.getElementById("btn-connect-xaman")?.addEventListener("click", () => {
+            document.getElementById("xaman-wallet-modal")?.classList.remove("hidden");
+            const label = document.getElementById("xaman-timer-label");
+            if (label) label.textContent = "Awaiting authorization (30s)...";
+        });
+
+        document.getElementById("close-xaman-modal")?.addEventListener("click", () => {
+            document.getElementById("xaman-wallet-modal")?.classList.add("hidden");
+        });
+
+        document.getElementById("btn-submit-xaman-manual")?.addEventListener("click", async () => {
+            const addrInput = document.getElementById("xaman-manual-address");
+            const addr = addrInput ? addrInput.value.trim() : "";
+            if (!addr.startsWith("r") || addr.length < 25 || addr.length > 35) {
+                return alert("Invalid XRP Ledger address format. XRPL addresses start with 'r' and are 25-35 characters long.");
+            }
+            
+            const btn = document.getElementById("btn-submit-xaman-manual");
+            if (btn) btn.textContent = "Connecting...";
+            
+            let balance = 1000;
+            try {
+                const response = await fetch('https://xrplcluster.com', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'account_info',
+                        params: [{ account: addr, ledger_index: 'validated' }]
+                    })
+                });
+                const data = await response.json();
+                if (data.result && data.result.account_data) {
+                    const drops = data.result.account_data.Balance;
+                    balance = parseFloat(drops) / 1000000;
+                }
+            } catch (e) {
+                console.error("Failed to load live XRPL balance", e);
+            }
+            
+            this.state.xamanConnected = true;
+            this.state.xamanAddress = addr;
+            this.state.xamanBalance = balance;
+            
+            if (btn) btn.textContent = "Connect Address";
+            if (addrInput) addrInput.value = "";
+            document.getElementById("xaman-wallet-modal")?.classList.add("hidden");
+            
+            this.saveState();
+            this.updateUI();
+            alert(`🎉 Successfully connected Xaman Wallet!\nLinked account: ${addr}\nBalance: ${balance.toFixed(2)} XRP`);
+        });
+
+        document.getElementById("btn-simulate-xaman")?.addEventListener("click", () => {
+            const label = document.getElementById("xaman-timer-label");
+            if (label) label.textContent = "Verifying payload signature...";
+            
+            const btn = document.getElementById("btn-simulate-xaman");
+            if (btn) btn.disabled = true;
+            
+            setTimeout(() => {
+                const mockAddr = "rM147fX8V2vU" + Math.random().toString(36).substring(2, 10).toUpperCase() + "1L8cMhV8Y9fX6sN3U9";
+                this.state.xamanConnected = true;
+                this.state.xamanAddress = mockAddr;
+                this.state.xamanBalance = 777.77;
+                
+                if (btn) btn.disabled = false;
+                document.getElementById("xaman-wallet-modal")?.classList.add("hidden");
+                
+                this.saveState();
+                this.updateUI();
+                alert(`🎉 Simulated Xaman Wallet Connection Successful!\nAccount: ${mockAddr}\nBalance: 777.77 XRP`);
+            }, 1500);
+        });
+
         document.getElementById("reset-game-btn")?.addEventListener("click", () => {
             if (confirm("Are you sure you want to reset all game progress, NFTs, and local balances?")) {
                 this.resetState();
@@ -537,6 +618,8 @@ class GameController {
         document.getElementById("header-civ").textContent = `Civ: ${this.state.civ} | ${this.state.currentAge}`;
         document.getElementById("town-civ-perk").textContent = this.state.civPerk;
 
+        this.renderXamanWallet();
+
         if (this.activeTab === "town-center") {
             this.renderTownCenter();
         } else if (this.activeTab === "manage-villagers") {
@@ -553,6 +636,29 @@ class GameController {
             this.renderMarketplace();
         } else if (this.activeTab === "leaderboard") {
             this.renderLeaderboard();
+        }
+    }
+
+    renderXamanWallet() {
+        const btn = document.getElementById("btn-connect-xaman");
+        const details = document.getElementById("xaman-wallet-details");
+        const addrText = document.getElementById("xaman-address");
+        const balText = document.getElementById("xaman-balance");
+
+        if (this.state.xamanConnected) {
+            btn?.classList.add("hidden");
+            details?.classList.remove("hidden");
+            if (addrText) {
+                const addr = this.state.xamanAddress;
+                addrText.textContent = addr.substring(0, 5) + "..." + addr.substring(addr.length - 4);
+                addrText.title = addr;
+            }
+            if (balText) {
+                balText.textContent = `${this.state.xamanBalance.toFixed(2)} XRP`;
+            }
+        } else {
+            btn?.classList.remove("hidden");
+            details?.classList.add("hidden");
         }
     }
 

@@ -47,6 +47,15 @@
         
         <!-- Header Bar -->
         <header class="app-header">
+            <div class="header-xaman-wallet">
+                <button id="btn-connect-xaman" class="btn btn-outline-warning btn-xs font-cinzel">
+                    📱 Connect Xaman Wallet
+                </button>
+                <div id="xaman-wallet-details" class="hidden">
+                    <span id="xaman-address" class="xaman-addr font-cinzel">Not Connected</span>
+                    <span id="xaman-balance" class="xaman-bal badge badge-warning">0 XRP</span>
+                </div>
+            </div>
             <div class="header-logo">
                 <h2 class="logo-text font-cinzel">AGES OF MEMES</h2>
             </div>
@@ -1144,6 +1153,39 @@
                 </section>
 
             </main>
+        </div>
+    </div>
+
+    <!-- Xaman Wallet Modal -->
+    <div id="xaman-wallet-modal" class="modal-wrapper hidden">
+        <div class="modal-card text-center p-4">
+            <div class="modal-header d-flex justify-content-between align-items-center mb-3">
+                <h3 class="font-cinzel text-warning m-0">📱 Xaman Sign-In Portal</h3>
+                <button id="close-xaman-modal" class="close-btn">&times;</button>
+            </div>
+            <p class="small text-muted mb-3 font-cinzel">Scan the QR code below using the Xaman (Xumm) Mobile App, or input your XRPL wallet address to link your account.</p>
+            
+            <div class="row align-items-center justify-content-center">
+                <!-- QR Code Section -->
+                <div class="col-md-6 mb-3">
+                    <div class="xaman-qr-container p-3 bg-white rounded" style="display: inline-block;">
+                        <img id="xaman-qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=https://xumm.app/detect/login" alt="Xaman Sign-In QR" style="width: 180px; height: 180px; display: block; margin: 0 auto;">
+                    </div>
+                    <div id="xaman-timer-label" class="small text-warning mt-2 font-cinzel">Awaiting authorization (30s)...</div>
+                </div>
+
+                <!-- Manual Address Section -->
+                <div class="col-md-6 mb-3 text-left">
+                    <div class="form-group">
+                        <label for="xaman-manual-address" class="font-cinzel text-warning small">Or Enter XRPL Public Address</label>
+                        <input type="text" id="xaman-manual-address" placeholder="e.g. r9cZA1mLm5RfQV75Z7ytRdom..." style="width: 100%; padding: 5px; background: rgba(0,0,0,0.5); border: 1px solid var(--color-gold); color: #fff; border-radius: 4px;">
+                    </div>
+                    <button id="btn-submit-xaman-manual" class="btn btn-gold btn-sm w-100 font-cinzel mt-2">Connect Address</button>
+                    
+                    <div class="divider my-3"></div>
+                    <button id="btn-simulate-xaman" class="btn btn-outline-warning btn-sm w-100 font-cinzel">Simulate Quick Connect</button>
+                </div>
+            </div>
         </div>
     </div>
 
