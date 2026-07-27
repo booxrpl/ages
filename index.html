@@ -1,0 +1,1153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ages of Memes: AoE2 NFT Idle Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Onboarding Registration View -->
+    <div id="registration-pane" class="auth-wrapper">
+        <div class="auth-card text-center">
+            <h1 class="game-title">AGES OF MEMES</h1>
+            <p class="game-subtitle font-cinzel">Definitive NFT Idle Edition</p>
+            <div class="divider"></div>
+            <p class="description">
+                Welcome to the ultimate medieval strategy idle game. Upgrade your civilization through 4 key Ages. Purchase civilization NFTs, mine resources (Food, Wood, Gold, Stone), upgrade buildings, raise armies, engage in tactical PvP raids, and swap Gold for the <strong>$AGES</strong> Memetoken.
+            </p>
+            
+            <div class="form-group text-left">
+                <label for="reg-username">Choose Player Username</label>
+                <input type="text" id="reg-username" placeholder="e.g. L0rd_Of_Meme" max="15">
+            </div>
+
+            <div class="form-group text-left">
+                <label for="reg-civ">Select Civilization NFT</label>
+                <select id="reg-civ">
+                    <option value="Britons">Britons (Archers +15% ATK, Wood gather +10%, Archery cost -10%)</option>
+                    <option value="Franks">Franks (Cavalry +20% HP, Farm gather +10%, Castles cost -15%)</option>
+                    <option value="Mongols">Mongols (Cavalry +15% ATK, Gold gather +10%, View +20%)</option>
+                    <option value="Byzantines">Byzantines (Buildings +20% HP, Counter cost -15%, Stone +10%)</option>
+                    <option value="Teutons">Teutons (Castle +15% ATK, Infantry +10% HP, Farm cost -20%)</option>
+                    <option value="Huns">Huns (Cavalry cost -15%, Wood gather +15%, Cavalry defense +10%)</option>
+                </select>
+            </div>
+
+            <button id="register-btn" class="btn btn-gold btn-large mt-3">MINT CIV NFT & JOIN GAME</button>
+        </div>
+    </div>
+
+    <!-- Main Game View -->
+    <div id="main-game-pane" class="app-layout hidden">
+        
+        <!-- Header Bar -->
+        <header class="app-header">
+            <div class="header-logo">
+                <h2 class="logo-text font-cinzel">AGES OF MEMES</h2>
+            </div>
+            
+            <!-- Live Resource Panel -->
+            <div class="resource-panel">
+                <div class="resource-item" title="Food (🍖)">
+                    <span class="res-icon">🍖</span>
+                    <div class="res-meta">
+                        <div class="res-val-wrapper">
+                            <span id="res-food" class="res-val">0</span>
+                            <span id="alert-food-full" class="badge badge-danger alert-full hidden">FULL</span>
+                        </div>
+                        <span id="rate-food" class="res-rate">+0/m</span>
+                    </div>
+                </div>
+                <div class="resource-item" title="Wood (🪵)">
+                    <span class="res-icon">🪵</span>
+                    <div class="res-meta">
+                        <div class="res-val-wrapper">
+                            <span id="res-wood" class="res-val">0</span>
+                            <span id="alert-wood-full" class="badge badge-danger alert-full hidden">FULL</span>
+                        </div>
+                        <span id="rate-wood" class="res-rate">+0/m</span>
+                    </div>
+                </div>
+                <div class="resource-item" title="Gold (🪙)">
+                    <span class="res-icon">🪙</span>
+                    <div class="res-meta">
+                        <div class="res-val-wrapper">
+                            <span id="res-gold" class="res-val">0</span>
+                            <span id="alert-gold-full" class="badge badge-danger alert-full hidden">FULL</span>
+                        </div>
+                        <span id="rate-gold" class="res-rate">+0/m</span>
+                    </div>
+                </div>
+                <div class="resource-item" title="Stone (🪨)">
+                    <span class="res-icon">🪨</span>
+                    <div class="res-meta">
+                        <div class="res-val-wrapper">
+                            <span id="res-stone" class="res-val">0</span>
+                            <span id="alert-stone-full" class="badge badge-danger alert-full hidden">FULL</span>
+                        </div>
+                        <span id="rate-stone" class="res-rate">+0/m</span>
+                    </div>
+                </div>
+                
+                <!-- Storage limit info -->
+                <div class="storage-meta font-cinzel text-muted">
+                    Cap: <strong id="storage-limit-display" class="text-warning">2000</strong>
+                </div>
+
+                <div class="resource-item highlight-token" title="$AGES Memetoken Balance">
+                    <span class="res-icon">💎</span>
+                    <div class="res-meta">
+                        <span id="res-ages" class="res-val text-warning">0</span>
+                        <span class="res-label text-muted">$AGES</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Overview -->
+            <div class="header-profile">
+                <div class="profile-details text-right">
+                    <div id="header-player-name" class="profile-name">Player</div>
+                    <div id="header-civ" class="profile-civ font-cinzel">Civ: None</div>
+                </div>
+                <div class="avatar-shield">🛡️</div>
+            </div>
+        </header>
+
+        <div class="app-body">
+            
+            <!-- Left Sidebar Navigation -->
+            <aside class="app-sidebar">
+                <nav class="sidebar-nav">
+                    <button id="tab-town-center" class="active">
+                        <span class="nav-icon">🏰</span> Town Center
+                    </button>
+                    <button id="tab-manage-villagers">
+                        <span class="nav-icon">👨‍🌾</span> Worker Guild
+                    </button>
+                    <button id="tab-economic-buildings">
+                        <span class="nav-icon">🚜</span> Economic Buildings
+                    </button>
+                    <button id="tab-military">
+                        <span class="nav-icon">⚔️</span> Barracks & Military
+                    </button>
+                    <button id="tab-combat-arena">
+                        <span class="nav-icon">🛡️</span> Raid Map (PvP)
+                    </button>
+                    <button id="tab-marketplace">
+                        <span class="nav-icon">📈</span> Finance & Rentals
+                    </button>
+                    <button id="tab-nft-shop">
+                        <span class="nav-icon">🛒</span> NFT Shop
+                    </button>
+                    <button id="tab-leaderboard">
+                        <span class="nav-icon">🏆</span> Leaderboard
+                    </button>
+                </nav>
+                <div class="sidebar-footer">
+                    <button id="reset-game-btn" class="btn btn-outline-danger btn-xs w-100">RESET PROGRESS</button>
+                </div>
+            </aside>
+
+            <!-- Main Interactive Viewport -->
+            <main class="app-content">
+                
+                <!-- View: Town Center -->
+                <section id="view-town-center" class="tab-view">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Town Center Dashboard</h2>
+                        <p class="lead font-cinzel">Manage your villagers, resource vaults, and track your owned NFT tokens.</p>
+                        <div class="civ-perk-badge font-cinzel mt-2">
+                            <span>Civ Perk: </span><strong id="town-civ-perk">-</strong>
+                        </div>
+                    </div>
+
+                    <!-- Age Advancement Board -->
+                    <div class="card p-4 mb-4 age-progression-board">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <h3 class="font-cinzel m-0 gold-text">Ages Advancement Portal</h3>
+                            <span id="age-display-title" class="badge badge-warning font-cinzel">Dark Age (Lvl 1)</span>
+                        </div>
+
+                        <!-- Panel 1: Countdown upgrade (active) -->
+                        <div id="age-countdown-wrapper" class="text-center p-3 hidden">
+                            <h4 class="font-cinzel text-warning mb-2">Advancing to Next Age...</h4>
+                            <div class="progress-bar-container mb-3">
+                                <div id="age-progress-bar" class="progress-bar"></div>
+                            </div>
+                            <div id="age-countdown-timer" class="countdown-timer font-cinzel mb-3">0d 00h 00m 00s</div>
+                            <div class="row justify-content-center">
+                                <div class="col-md-6 mb-2">
+                                    <button id="btn-age-speedup" class="btn btn-gold btn-sm w-100 font-cinzel">Instant Finish (<span id="age-speedup-cost">500 $AGES</span>)</button>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <button id="btn-age-test-time" class="btn btn-outline-warning btn-sm w-100 font-cinzel">Test Speed Up (Skip 24h)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Panel 2: Upgrade trigger (idle) -->
+                        <div id="age-upgrade-action-wrapper" class="p-2">
+                            <!-- Populated dynamically by game.js -->
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Manual Click Gathering -->
+                        <div class="col-md-5 mb-4">
+                            <div class="card p-4 h-100 text-center">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3">Mine Resources</h3>
+                                <p class="small text-muted mb-4">Click buttons below to manually gather and boost your resource stocks.</p>
+                                
+                                <div class="clicker-grid">
+                                    <button id="btn-click-food" class="btn btn-gather food-btn">
+                                        <span class="btn-icon">🍖</span> Gather Food
+                                    </button>
+                                    <button id="btn-click-wood" class="btn btn-gather wood-btn">
+                                        <span class="btn-icon">🪵</span> Gather Wood
+                                    </button>
+                                    <button id="btn-click-gold" class="btn btn-gather gold-btn">
+                                        <span class="btn-icon">🪙</span> Mine Gold
+                                    </button>
+                                    <button id="btn-click-stone" class="btn btn-gather stone-btn">
+                                        <span class="btn-icon">🪨</span> Mine Stone
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Faction & Empire Stats -->
+                        <div class="col-md-7 mb-4">
+                            <div class="card p-4 h-100">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3">Empire & Faction Statistics</h3>
+                                <p class="small text-muted mb-3 font-cinzel">View your active passive extraction rates and structural benefits:</p>
+                                
+                                <div class="villager-job-rows">
+                                    <div class="job-row">
+                                        <div class="job-info text-left">
+                                            <span class="job-icon">🍖</span>
+                                            <div>
+                                                <div class="job-title font-cinzel">Passive Food Generation</div>
+                                                <div class="job-rate text-success font-cinzel">Passive Rate: +<span id="passive-rate-food">0</span>/m</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="job-row">
+                                        <div class="job-info text-left">
+                                            <span class="job-icon">🪵</span>
+                                            <div>
+                                                <div class="job-title font-cinzel">Passive Wood Generation</div>
+                                                <div class="job-rate text-success font-cinzel">Passive Rate: +<span id="passive-rate-wood">0</span>/m</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="job-row">
+                                        <div class="job-info text-left">
+                                            <span class="job-icon">🪙</span>
+                                            <div>
+                                                <div class="job-title font-cinzel">Passive Gold Generation</div>
+                                                <div class="job-rate text-success font-cinzel">Passive Rate: +<span id="passive-rate-gold">0</span>/m</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="job-row">
+                                        <div class="job-info text-left">
+                                            <span class="job-icon">🪨</span>
+                                            <div>
+                                                <div class="job-title font-cinzel">Passive Stone Generation</div>
+                                                <div class="job-rate text-success font-cinzel">Passive Rate: +<span id="passive-rate-stone">0</span>/m</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NFT Wallet Section (OWNED NFTS) -->
+                    <div class="card p-4 mb-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">My NFT Wallet Inventory</h3>
+                        <div class="row" id="my-nfts-wallet">
+                            <!-- Populated dynamically by game.js -->
+                        </div>
+                    </div>
+
+                    <!-- Active Rental Perks -->
+                    <div class="card p-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3">Active Leased NFT Buffs</h3>
+                        <ul id="active-rental-perks" class="rental-perks-list">
+                            <!-- Populated dynamically -->
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- View: Manage Villagers (Worker Guild) -->
+                <section id="view-manage-villagers" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Worker Guild & Labor Management</h2>
+                        <p class="lead">Optimize your workforce. Assign individual villagers to roles based on their HP, status, and random extraction specialties.</p>
+                    </div>
+
+                    <!-- Faction Labor Summary Grid -->
+                    <div class="card p-4 mb-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Labor Assignment Summary</h3>
+                        <div class="row text-center">
+                            <div class="col-md-2 col-6 mb-2">
+                                <div class="p-2 bg-dark-overlay rounded">
+                                    <span class="d-block font-cinzel text-muted small">Total Labor</span>
+                                    <h4 class="m-0 gold-text" id="summary-total-workers">0</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-6 mb-2">
+                                <div class="p-2 bg-dark-overlay rounded">
+                                    <span class="d-block font-cinzel text-muted small">Idle Workers</span>
+                                    <h4 class="m-0 text-info" id="summary-idle-workers">0</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-6 mb-2">
+                                <div class="p-2 bg-dark-overlay rounded">
+                                    <span class="d-block font-cinzel text-muted small">Farmers</span>
+                                    <h4 class="m-0 text-success" id="summary-food-workers">0</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-6 mb-2">
+                                <div class="p-2 bg-dark-overlay rounded">
+                                    <span class="d-block font-cinzel text-muted small">Lumberjacks</span>
+                                    <h4 class="m-0 text-success" id="summary-wood-workers">0</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-6 mb-2">
+                                <div class="p-2 bg-dark-overlay rounded">
+                                    <span class="d-block font-cinzel text-muted small">Gold Miners</span>
+                                    <h4 class="m-0 text-warning" id="summary-gold-workers">0</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-2 col-6 mb-2">
+                                <div class="p-2 bg-dark-overlay rounded">
+                                    <span class="d-block font-cinzel text-muted small">Stone Quarrymen</span>
+                                    <h4 class="m-0 text-warning" id="summary-stone-workers">0</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Individual Villager Grid -->
+                    <div class="card p-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">Active Villager NFT Directory</h3>
+                        <div class="row" id="manage-villagers-directory">
+                            <!-- Populated dynamically by game.js -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Economic Buildings -->
+                <section id="view-economic-buildings" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Town Economy & Infrastructure</h2>
+                        <p class="lead">Construct and upgrade economic buildings to boost resource production rates permanently and unlock new systems.</p>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Economic Infrastructure Shop</h3>
+                    <div class="row mb-4">
+                        <!-- Mill NFT card -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-mill">
+                                <div class="card-icon">🌾</div>
+                                <h4 class="font-cinzel m-1">Mill NFT</h4>
+                                <p class="small text-muted mb-3">Boost Food production (+1.5/min) permanently. (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">150 Gold</div>
+                                <div class="small text-success mb-2">Owned: <span id="shop-count-mill">0</span></div>
+                                <button id="buy-nft-mill" class="btn btn-gold btn-sm w-100">Mint Mill</button>
+                            </div>
+                        </div>
+
+                        <!-- Lumber Camp NFT card -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-lumber">
+                                <div class="card-icon">🪵</div>
+                                <h4 class="font-cinzel m-1">Lumber Camp NFT</h4>
+                                <p class="small text-muted mb-3">Boost Wood production (+1.5/min) permanently. (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">150 Gold</div>
+                                <div class="small text-success mb-2">Owned: <span id="shop-count-lumber">0</span></div>
+                                <button id="buy-nft-lumber" class="btn btn-gold btn-sm w-100">Mint Lumber Camp</button>
+                            </div>
+                        </div>
+
+                        <!-- Mining Camp NFT card -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-mining">
+                                <div class="card-icon">🪨</div>
+                                <h4 class="font-cinzel m-1">Mining Camp NFT</h4>
+                                <p class="small text-muted mb-3">Boost Gold (+1.2/m) and Stone (+0.8/m) passive gathering. (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">250 Gold</div>
+                                <div class="small text-success mb-2">Owned: <span id="shop-count-mining">0</span></div>
+                                <button id="buy-nft-mining" class="btn btn-gold btn-sm w-100">Mint Mining Camp</button>
+                            </div>
+                        </div>
+
+                        <!-- Market NFT card -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-market">
+                                <div class="card-icon">⚖️</div>
+                                <h4 class="font-cinzel m-1">Market NFT</h4>
+                                <p class="small text-muted mb-3">Unlocks financial trading, token swaps, and asset leases. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Wood, 100 Gold</div>
+                                <button id="buy-nft-market" class="btn btn-gold btn-sm w-100">Mint Market</button>
+                            </div>
+                        </div>
+
+                        <!-- University NFT card -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-university">
+                                <div class="card-icon">📜</div>
+                                <h4 class="font-cinzel m-1">University NFT</h4>
+                                <p class="small text-muted mb-3">Academic expertise: +15% passive extraction rate to all resources. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">1000 Wood, 500 Gold</div>
+                                <button id="buy-nft-university" class="btn btn-gold btn-sm w-100">Mint University</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Economic Technology Upgrades</h3>
+                    <div class="row mb-4">
+                        <!-- Double bit axe -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-up-axe">
+                                <h4 class="font-cinzel m-1">Double-Bit Axe</h4>
+                                <p class="small text-muted mb-3">Wood gather rates +25% boost. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Wood</div>
+                                <button id="buy-up-axe" class="btn btn-gold btn-sm w-100">Research Axe</button>
+                            </div>
+                        </div>
+
+                        <!-- Horse Collar -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-up-collar">
+                                <h4 class="font-cinzel m-1">Horse Collar</h4>
+                                <p class="small text-muted mb-3">Food farming rates +25% boost. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Food</div>
+                                <button id="buy-up-collar" class="btn btn-gold btn-sm w-100">Research Collar</button>
+                            </div>
+                        </div>
+
+                        <!-- Gold Mining -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-up-gold">
+                                <h4 class="font-cinzel m-1">Gold Mining</h4>
+                                <p class="small text-muted mb-3">Gold mining rates +25% boost. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Gold</div>
+                                <button id="buy-up-gold" class="btn btn-gold btn-sm w-100">Research Gold Mining</button>
+                            </div>
+                        </div>
+
+                        <!-- Stone Mining -->
+                        <div class="col-md-3 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-up-stone">
+                                <h4 class="font-cinzel m-1">Stone Mining</h4>
+                                <p class="small text-muted mb-3">Stone quarrying rates +25% boost. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Stone</div>
+                                <button id="buy-up-stone" class="btn btn-gold btn-sm w-100">Research Stone Mining</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Economic Assets Wallet -->
+                    <div class="card p-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">Active Economic NFTs Wallet</h3>
+                        <div class="row" id="economic-nfts-wallet">
+                            <!-- Populated dynamically by game.js: Civ, Mills, Lumber Camps, Mining Camps, Markets, Universities -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Barracks / Military -->
+                <section id="view-military" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Military Base & Barracks</h2>
+                        <p class="lead">Train military units to defend your village or attack and raid other players. Follow strategic counter rules.</p>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Military Fortifications Shop</h3>
+                    <div class="row mb-4">
+                        <!-- Barracks -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-barracks">
+                                <div class="card-icon">🛖</div>
+                                <h4 class="font-cinzel m-1">Barracks NFT</h4>
+                                <p class="small text-muted mb-3">Train Spearmen (Lvl 1) & Champions (Lvl 4). (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">500 Food, 300 Gold</div>
+                                <button id="buy-nft-barracks" class="btn btn-gold btn-sm w-100">Mint Barracks</button>
+                            </div>
+                        </div>
+
+                        <!-- Blacksmith -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-blacksmith">
+                                <div class="card-icon">🔥</div>
+                                <h4 class="font-cinzel m-1">Blacksmith NFT</h4>
+                                <p class="small text-muted mb-3">Required to research military tech upgrades. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">400 Wood, 200 Gold</div>
+                                <button id="buy-nft-blacksmith" class="btn btn-gold btn-sm w-100">Mint Blacksmith</button>
+                            </div>
+                        </div>
+
+                        <!-- Archery Range -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-archery">
+                                <div class="card-icon">🎯</div>
+                                <h4 class="font-cinzel m-1">Archery Range</h4>
+                                <p class="small text-muted mb-3">Train Archers. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">600 Food, 400 Gold</div>
+                                <button id="buy-nft-archery" class="btn btn-gold btn-sm w-100">Mint Archery Range</button>
+                            </div>
+                        </div>
+
+                        <!-- Stable -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-stable">
+                                <div class="card-icon">🐎</div>
+                                <h4 class="font-cinzel m-1">Stable NFT</h4>
+                                <p class="small text-muted mb-3">Train Knights. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">800 Food, 500 Gold</div>
+                                <button id="buy-nft-stable" class="btn btn-gold btn-sm w-100">Mint Stable</button>
+                            </div>
+                        </div>
+
+                        <!-- Castle -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-castle">
+                                <div class="card-icon">🏰</div>
+                                <h4 class="font-cinzel m-1">Castle NFT</h4>
+                                <p class="small text-muted mb-3">Citadel defense. Required to train Catapults. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">2000 Food, 1000 Gold</div>
+                                <button id="buy-nft-castle" class="btn btn-gold btn-sm w-100">Mint Castle</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Military Armory Upgrades</h3>
+                    <div class="row mb-4">
+                        <!-- Blacksmith: Fletching -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-up-fletch">
+                                <h4 class="font-cinzel m-1">Fletching</h4>
+                                <p class="small text-muted mb-3">Archery units receive +20% damage. (Lvl 3+ | Requires Blacksmith)</p>
+                                <div class="shop-cost mb-2 text-warning">400 Gold</div>
+                                <button id="buy-up-fletch" class="btn btn-gold btn-sm w-100">Research Fletching</button>
+                            </div>
+                        </div>
+
+                        <!-- Blacksmith: Iron Casting -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-up-iron">
+                                <h4 class="font-cinzel m-1">Iron Casting</h4>
+                                <p class="small text-muted mb-3">Melee units receive +20% damage. (Lvl 4+ | Requires Blacksmith)</p>
+                                <div class="shop-cost mb-2 text-warning">500 Gold</div>
+                                <button id="buy-up-iron" class="btn btn-gold btn-sm w-100">Research Iron Casting</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Training Hub -->
+                        <div class="col-md-7 mb-4">
+                            <div class="card p-4">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3">Train Forces</h3>
+                                <div class="unit-training-list">
+                                    
+                                    <!-- Spearman -->
+                                    <div class="unit-row">
+                                        <div class="unit-info">
+                                            <span class="unit-avatar">🔱</span>
+                                            <div>
+                                                <h4 class="font-cinzel m-0">Spearman</h4>
+                                                <p class="small text-success m-0">Counter-cavalry specialist (3x vs Horsemen)</p>
+                                                <span class="small text-warning">Cost: 50 Food, 35 Wood (Lvl 1+)</span>
+                                            </div>
+                                        </div>
+                                        <button id="train-spearman" class="btn btn-gold btn-sm">Train Spearman</button>
+                                    </div>
+
+                                    <!-- Archer -->
+                                    <div class="unit-row">
+                                        <div class="unit-info">
+                                            <span class="unit-avatar">🏹</span>
+                                            <div>
+                                                <h4 class="font-cinzel m-0">Archer</h4>
+                                                <p class="small text-success m-0">Counter-infantry specialist (2x vs Spearmen)</p>
+                                                <span class="small text-warning">Cost: 45 Wood, 35 Gold (Lvl 2+)</span>
+                                            </div>
+                                        </div>
+                                        <button id="train-archer" class="btn btn-gold btn-sm">Train Archer</button>
+                                    </div>
+
+                                    <!-- Knight -->
+                                    <div class="unit-row">
+                                        <div class="unit-info">
+                                            <span class="unit-avatar">🐎</span>
+                                            <div>
+                                                <h4 class="font-cinzel m-0">Knight</h4>
+                                                <p class="small text-success m-0">Counter-ranged specialist (2.5x vs Archers)</p>
+                                                <span class="small text-warning">Cost: 60 Food, 75 Gold (Lvl 2+)</span>
+                                            </div>
+                                        </div>
+                                        <button id="train-knight" class="btn btn-gold btn-sm">Train Knight</button>
+                                    </div>
+
+                                    <!-- Champion -->
+                                    <div class="unit-row">
+                                        <div class="unit-info">
+                                            <span class="unit-avatar">🛡️</span>
+                                            <div>
+                                                <h4 class="font-cinzel m-0">Champion</h4>
+                                                <p class="small text-success m-0">Strong heavy swordsman. Balanced frontline infantry. (Lvl 4+)</p>
+                                                <span class="small text-warning">Cost: 60 Food, 20 Gold</span>
+                                            </div>
+                                        </div>
+                                        <button id="train-champion" class="btn btn-gold btn-sm">Train Champion</button>
+                                    </div>
+
+                                    <!-- Catapult -->
+                                    <div class="unit-row">
+                                        <div class="unit-info">
+                                            <span class="unit-avatar">💥</span>
+                                            <div>
+                                                <h4 class="font-cinzel m-0">Catapult</h4>
+                                                <p class="small text-success m-0">Counter-castle specialist. Deals 4x siege damage. (Lvl 4+ | Trained at Castle)</p>
+                                                <span class="small text-warning">Cost: 150 Wood, 100 Gold</span>
+                                            </div>
+                                        </div>
+                                        <button id="train-catapult" class="btn btn-gold btn-sm font-cinzel">Train Catapult</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Garrison Info -->
+                        <div class="col-md-5 mb-4">
+                            <div class="card p-4 h-100 text-center">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3">Your Army Garrison</h3>
+                                <p class="small text-muted mb-4">Current military standing forces stationed inside your village walls.</p>
+                                
+                                <div class="garrison-stats">
+                                    <div class="garrison-item">
+                                        <span class="g-icon">🔱</span>
+                                        <div class="font-cinzel">Spearmen</div>
+                                        <div id="mil-count-spearman" class="g-val font-cinzel">0</div>
+                                    </div>
+                                    <div class="garrison-item">
+                                        <span class="g-icon">🏹</span>
+                                        <div class="font-cinzel">Archers</div>
+                                        <div id="mil-count-archer" class="g-val font-cinzel">0</div>
+                                    </div>
+                                    <div class="garrison-item">
+                                        <span class="g-icon">🐎</span>
+                                        <div class="font-cinzel">Knights</div>
+                                        <div id="mil-count-knight" class="g-val font-cinzel">0</div>
+                                    </div>
+                                    <div class="garrison-item">
+                                        <span class="g-icon">🛡️</span>
+                                        <div class="font-cinzel">Champions</div>
+                                        <div id="mil-count-champion" class="g-val font-cinzel">0</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row justify-content-center mt-3">
+                                    <div class="col-6">
+                                        <div class="garrison-item">
+                                            <span class="g-icon">💥</span>
+                                            <div class="font-cinzel">Catapults</div>
+                                            <div id="mil-count-catapult" class="g-val font-cinzel">0</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="divider"></div>
+                                <div class="combat-guide bg-dark-overlay p-3 rounded text-left">
+                                    <h5 class="font-cinzel text-warning m-0 mb-2">Tactical Combat Guide</h5>
+                                    <ul class="small m-0 pl-3">
+                                        <li><strong>Spearmen (🔱)</strong> beat <strong>Knights (🐎)</strong> (3x damage).</li>
+                                        <li><strong>Knights (🐎)</strong> beat <strong>Archers (🏹)</strong> & **Catapults (💥)**.</li>
+                                        <li><strong>Archers (🏹)</strong> beat <strong>Spearmen (🔱)</strong> (2x damage).</li>
+                                        <li><strong>Catapults (💥)</strong> beat **Castles/Citadels** (4x siege damage).</li>
+                                        <li><strong>Champions (🛡️)</strong> beat Spearmen, acting as standard tanks.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Garrisoned Military NFTs Wallet -->
+                    <div class="card p-4 mt-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">Garrisoned Military NFTs Wallet</h3>
+                        <div class="row" id="military-nfts-wallet">
+                            <!-- Populated dynamically by game.js: Barracks, Archery Range, Stable, Castle, Catapults -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Combat Arena -->
+                <section id="view-combat-arena" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">PvP Arena & Raiding Map</h2>
+                        <p class="lead">Send your standing military army to attack simulated targets on the map, plunder resources, and climb the leaderboard.</p>
+                    </div>
+
+                    <div class="row">
+                        <!-- Target Map List -->
+                        <div class="col-md-7 mb-4">
+                            <h3 class="font-cinzel border-bottom pb-2 mb-3">Select Target Civilization</h3>
+                            <div class="row" id="combat-targets-list">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Combat Log Console -->
+                        <div class="col-md-5 mb-4">
+                            <h3 class="font-cinzel border-bottom pb-2 mb-3">Tactical Combat Console</h3>
+                            <div class="card p-3 console-box" id="combat-log-console">
+                                <p class="muted">Awaiting troop deployment logs...</p>
+                            </div>
+
+                            <!-- Diplomatic Allies Board -->
+                            <div class="card p-4 mt-3 allies-dashboard-card" id="allies-dashboard">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-2 text-success">🤝 Diplomatic Alliance Guild</h3>
+                                <p class="small text-muted mb-3">Form diplomatic alliances with other empires to protect your villagers and receive trade tributes (+10/min rate of their specialty resource).</p>
+                                <div id="allies-active-list">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Marketplace & Swap -->
+                <section id="view-marketplace" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Financial Exchange & Tokenomics Portal</h2>
+                        <p class="lead">Swap mined Gold for <strong>$AGES Memetoken</strong>, rent NFTs, or fast-forward the token market cycle.</p>
+                    </div>
+
+                    <!-- Marketplace Locked Screen -->
+                    <div id="market-locked-screen" class="card p-5 text-center mb-4">
+                        <h2 class="font-cinzel text-warning mb-3">🔒 MARKET NFT REQUIRED</h2>
+                        <p class="lead text-muted font-cinzel mb-4">
+                            Diplomatic and financial trading systems are restricted in your territory.
+                            <br>Construct a <strong>Market NFT</strong> in the Feudal Age (Shop Tab) to gain access to tokenomics swaps, player listings, and leases.
+                        </p>
+                        <div class="p-3 bg-dark-overlay rounded font-cinzel text-warning" style="display: inline-block;">
+                            ⚖️ Market NFT Requirements: Feudal Age (Lvl 2) | Cost: 300 Wood, 100 Gold
+                        </div>
+                    </div>
+
+                    <!-- Marketplace Active Screen -->
+                    <div id="market-active-screen">
+                        <!-- Tokenomics Dashboard (Supply / Valuation details) -->
+                        <div class="card p-4 mb-4 tokenomics-dashboard-card">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">Ecosystem Financial Dashboard</h3>
+                        <div class="row text-center mb-3">
+                            <div class="col-md-3 col-6 mb-2">
+                                <div class="bg-dark-overlay p-3 rounded">
+                                    <div class="small text-muted font-cinzel">Total Token Supply</div>
+                                    <h4 class="font-cinzel text-warning m-0">1,000,000 $AGES</h4>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <div class="bg-dark-overlay p-3 rounded">
+                                    <div class="small text-muted font-cinzel">Simulated Market Cap</div>
+                                    <h4 class="font-cinzel text-success m-0">$ <span id="mcap-display">5,000</span></h4>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <div class="bg-dark-overlay p-3 rounded">
+                                    <div class="small text-muted font-cinzel">Current $AGES Price</div>
+                                    <h4 class="font-cinzel text-success m-0">$ <span id="price-display">0.0050</span></h4>
+                                </div>
+                            </div>
+                            <div class="col-md-3 col-6 mb-2">
+                                <div class="bg-dark-overlay p-3 rounded">
+                                    <div class="small text-muted font-cinzel">10% Game Mining Allocation</div>
+                                    <h4 class="font-cinzel text-warning m-0"><span id="pool-remaining-display">100,000</span> left</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="small text-muted m-0 text-center">
+                            *The ecosystem restricts in-game mining swaps to **10% of total supply (100,000 $AGES)**. Once depleted, no more gold swaps are allowed. The remaining 90% is trade-restricted.
+                        </p>
+                        <div class="text-center mt-3">
+                            <button id="btn-sim-day" class="btn btn-outline-warning btn-sm">Simulate Day Passed (+1 Day Price Jump)</button>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <!-- Swap Panel -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-4 h-100">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3">Swap Token Portal</h3>
+                                <p class="small text-muted mb-4">Exchange gathered Gold resources directly for $AGES Memetoken.</p>
+                                
+                                <div class="swap-rates-panel bg-dark-overlay p-3 text-center rounded mb-4">
+                                    <div class="small text-muted">Active Swap Value (Scales with Pool Remaining)</div>
+                                    <h4 id="swap-rate-display" class="font-cinzel text-warning m-0 mt-1">1 Gold = 0.10 $AGES</h4>
+                                    <button class="btn btn-outline-warning btn-xs mt-2" id="swap-rate-btn">Refresh Value</button>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="swap-amount">Enter Quantity to Swap</label>
+                                    <input type="number" id="swap-amount" placeholder="e.g. 100" min="1">
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <button class="btn btn-gold w-100" id="swap-g-to-a">Swap Gold ➡️ $AGES</button>
+                                    </div>
+                                    <div class="col-6">
+                                        <button class="btn btn-outline-warning w-100" id="swap-a-to-g">Swap $AGES ➡️ Gold</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rent My NFT Panel -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-4 h-100">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3">List NFT for Hire</h3>
+                                <p class="small text-muted mb-3">List your owned base building or villager NFTs for rent to NPCs.</p>
+                                
+                                <div class="form-group">
+                                    <label for="rent-asset-select">Select Asset NFT to Rent Out</label>
+                                    <select id="rent-asset-select">
+                                        <option value="Villager NFT">Villager NFT (Requires > 1 villager)</option>
+                                        <option value="Barracks NFT">Barracks NFT (Requires owned Barracks)</option>
+                                        <option value="Castle NFT">Castle NFT (Requires owned Castle)</option>
+                                    </select>
+                                </div>
+
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="rent-asset-cost">Rent Price (Gold)</label>
+                                            <input type="number" id="rent-asset-cost" placeholder="e.g. 150" min="1">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="form-group">
+                                            <label for="rent-asset-duration">Duration (Seconds)</label>
+                                            <input type="number" id="rent-asset-duration" placeholder="e.g. 60" min="10">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button id="list-rent-btn" class="btn btn-gold w-100 mt-3">List Asset on Market</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NPC Rentals lists -->
+                    <div class="card p-4 mb-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3">Hire NFT Perks from Leaderboard Members</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>NFT Asset</th>
+                                        <th>Owner</th>
+                                        <th>Perk / Benefit</th>
+                                        <th>Rent Cost</th>
+                                        <th>Duration</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rent-available-list">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Player listed rentals -->
+                    <div class="card p-4">
+                        <h3 class="font-cinzel border-bottom pb-2 mb-3">Your Listed Rental Assets</h3>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>NFT Asset</th>
+                                        <th>Type</th>
+                                        <th>Rent Fee</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="player-listings-list">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    </div> <!-- End market-active-screen -->
+                </section>
+
+                <!-- View: NFT Shop -->
+                <section id="view-nft-shop" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Empire NFT Shop & Resource Vault</h2>
+                        <p class="lead">Mint building structures, purchase resources packs using the $AGES memecoin, and research technologies.</p>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Resource Loot Packages (Buy with $AGES memecoin)</h3>
+                    <div class="row mb-4">
+                        <!-- Pack 1 -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card">
+                                <div class="card-icon">📦</div>
+                                <h4 class="font-cinzel m-1">Pioneer Supply Pack</h4>
+                                <p class="small text-muted mb-3">Gain 🍖 500 Food and 🪵 500 Wood instantly.</p>
+                                <div class="shop-cost mb-2 text-warning">20 $AGES</div>
+                                <button id="buy-pack-pioneer" class="btn btn-gold btn-sm w-100 font-cinzel">Buy Supply Pack</button>
+                            </div>
+                        </div>
+
+                        <!-- Pack 2 -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card">
+                                <div class="card-icon">💎</div>
+                                <h4 class="font-cinzel m-1">Imperial Vault Chest</h4>
+                                <p class="small text-muted mb-3">Gain 🪙 1000 Gold and 🪨 500 Stone instantly.</p>
+                                <div class="shop-cost mb-2 text-warning">50 $AGES</div>
+                                <button id="buy-pack-imperial" class="btn btn-gold btn-sm w-100 font-cinzel">Buy Vault Chest</button>
+                            </div>
+                        </div>
+
+                        <!-- Pack 3 -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card">
+                                <div class="card-icon">🪵</div>
+                                <h4 class="font-cinzel m-1">Siege Fortification crate</h4>
+                                <p class="small text-muted mb-3">Gain 🪵 150 Wood, 🪙 100 Gold, and 🪨 50 Stone instantly.</p>
+                                <div class="shop-cost mb-2 text-warning">15 $AGES</div>
+                                <button id="buy-pack-siege" class="btn btn-gold btn-sm w-100 font-cinzel">Buy Siege Crate</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Economic & Civilian Construction Shop</h3>
+                    <div class="row mb-4">
+                        <!-- Mill NFT card -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-mill">
+                                <div class="card-icon">🌾</div>
+                                <h4 class="font-cinzel m-1">Mill NFT</h4>
+                                <p class="small text-muted mb-3">Boost Food production (+1.5/min) permanently. (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">150 Gold</div>
+                                <button id="buy-nft-shop-mill" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Mill</button>
+                            </div>
+                        </div>
+
+                        <!-- Lumber Camp NFT card -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-lumber">
+                                <div class="card-icon">🪵</div>
+                                <h4 class="font-cinzel m-1">Lumber Camp NFT</h4>
+                                <p class="small text-muted mb-3">Boost Wood production (+1.5/min) permanently. (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">150 Gold</div>
+                                <button id="buy-nft-shop-lumber" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Lumber Camp</button>
+                            </div>
+                        </div>
+
+                        <!-- Mining Camp NFT card -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-mining">
+                                <div class="card-icon">🪨</div>
+                                <h4 class="font-cinzel m-1">Mining Camp NFT</h4>
+                                <p class="small text-muted mb-3">Boost Gold (+1.2/m) and Stone (+0.8/m) passive gathering. (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">250 Gold</div>
+                                <button id="buy-nft-shop-mining" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Mining Camp</button>
+                            </div>
+                        </div>
+
+                        <!-- Market NFT card -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-market">
+                                <div class="card-icon">⚖️</div>
+                                <h4 class="font-cinzel m-1">Market NFT</h4>
+                                <p class="small text-muted mb-3">Unlocks financial trading, token swaps, and asset leases. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Wood, 100 Gold</div>
+                                <button id="buy-nft-shop-market" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Market</button>
+                            </div>
+                        </div>
+
+                        <!-- University NFT card -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-university">
+                                <div class="card-icon">📜</div>
+                                <h4 class="font-cinzel m-1">University NFT</h4>
+                                <p class="small text-muted mb-3">Academic expertise: +15% passive extraction rate to all resources. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">1000 Wood, 500 Gold</div>
+                                <button id="buy-nft-shop-university" class="btn btn-gold btn-sm w-100 font-cinzel">Mint University</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Military & Fortifications Construction Shop</h3>
+                    <div class="row mb-4">
+                        <!-- Barracks -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-barracks">
+                                <div class="card-icon">🛖</div>
+                                <h4 class="font-cinzel m-1">Barracks NFT</h4>
+                                <p class="small text-muted mb-3">Train Spearmen (Lvl 1) & Champions (Lvl 4). (Lvl 1+)</p>
+                                <div class="shop-cost mb-2 text-warning">500 Food, 300 Gold</div>
+                                <button id="buy-nft-shop-barracks" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Barracks</button>
+                            </div>
+                        </div>
+
+                        <!-- Blacksmith -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-blacksmith">
+                                <div class="card-icon">🔥</div>
+                                <h4 class="font-cinzel m-1">Blacksmith NFT</h4>
+                                <p class="small text-muted mb-3">Required to research military tech upgrades. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">400 Wood, 200 Gold</div>
+                                <button id="buy-nft-shop-blacksmith" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Blacksmith</button>
+                            </div>
+                        </div>
+
+                        <!-- Archery Range -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-archery">
+                                <div class="card-icon">🎯</div>
+                                <h4 class="font-cinzel m-1">Archery Range</h4>
+                                <p class="small text-muted mb-3">Train Archers. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">600 Food, 400 Gold</div>
+                                <button id="buy-nft-shop-archery" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Archery Range</button>
+                            </div>
+                        </div>
+
+                        <!-- Stable -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-stable">
+                                <div class="card-icon">🐎</div>
+                                <h4 class="font-cinzel m-1">Stable NFT</h4>
+                                <p class="small text-muted mb-3">Train Knights. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">800 Food, 500 Gold</div>
+                                <button id="buy-nft-shop-stable" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Stable</button>
+                            </div>
+                        </div>
+
+                        <!-- Castle -->
+                        <div class="col-md-6 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-castle">
+                                <div class="card-icon">🏰</div>
+                                <h4 class="font-cinzel m-1">Castle NFT</h4>
+                                <p class="small text-muted mb-3">Citadel defense. Required to train Catapults. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">2000 Food, 1000 Gold</div>
+                                <button id="buy-nft-shop-castle" class="btn btn-gold btn-sm w-100 font-cinzel">Mint Castle</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Ecosystem Research & Technology Upgrades</h3>
+                    <div class="row">
+                        <!-- Double bit axe -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-up-axe">
+                                <h4 class="font-cinzel m-1">Double-Bit Axe</h4>
+                                <p class="small text-muted mb-3">Wood gather rates +25% boost. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Wood</div>
+                                <button id="buy-up-shop-axe" class="btn btn-gold btn-sm w-100 font-cinzel">Research Axe</button>
+                            </div>
+                        </div>
+
+                        <!-- Horse Collar -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-up-collar">
+                                <h4 class="font-cinzel m-1">Horse Collar</h4>
+                                <p class="small text-muted mb-3">Food farming rates +25% boost. (Lvl 2+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Food</div>
+                                <button id="buy-up-shop-collar" class="btn btn-gold btn-sm w-100 font-cinzel">Research Collar</button>
+                            </div>
+                        </div>
+
+                        <!-- Gold Mining -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-up-gold">
+                                <h4 class="font-cinzel m-1">Gold Mining</h4>
+                                <p class="small text-muted mb-3">Gold mining rates +25% boost. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Gold</div>
+                                <button id="buy-up-shop-gold" class="btn btn-gold btn-sm w-100 font-cinzel">Research Gold Mining</button>
+                            </div>
+                        </div>
+
+                        <!-- Stone Mining -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-up-stone">
+                                <h4 class="font-cinzel m-1">Stone Mining</h4>
+                                <p class="small text-muted mb-3">Stone quarrying rates +25% boost. (Lvl 3+)</p>
+                                <div class="shop-cost mb-2 text-warning">300 Stone</div>
+                                <button id="buy-up-shop-stone" class="btn btn-gold btn-sm w-100 font-cinzel">Research Stone Mining</button>
+                            </div>
+                        </div>
+
+                        <!-- Blacksmith: Fletching -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-up-fletch">
+                                <h4 class="font-cinzel m-1">Fletching</h4>
+                                <p class="small text-muted mb-3">Archery units receive +20% damage. (Lvl 3+ | Requires Blacksmith)</p>
+                                <div class="shop-cost mb-2 text-warning">400 Gold</div>
+                                <button id="buy-up-shop-fletch" class="btn btn-gold btn-sm w-100 font-cinzel">Research Fletching</button>
+                            </div>
+                        </div>
+
+                        <!-- Blacksmith: Iron Casting -->
+                        <div class="col-md-4 mb-3">
+                            <div class="card p-3 h-100 text-center item-shop-card" id="shop-card-shop-up-iron">
+                                <h4 class="font-cinzel m-1">Iron Casting</h4>
+                                <p class="small text-muted mb-3">Melee units receive +20% damage. (Lvl 4+ | Requires Blacksmith)</p>
+                                <div class="shop-cost mb-2 text-warning">500 Gold</div>
+                                <button id="buy-up-shop-iron" class="btn btn-gold btn-sm w-100 font-cinzel">Research Iron Casting</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- View: Leaderboard -->
+                <section id="view-leaderboard" class="tab-view hidden">
+                    <div class="glass-panel p-4 mb-4 text-center section-hero">
+                        <h2 class="font-cinzel section-heading">Global Player Leaderboard</h2>
+                        <p class="lead">Track player stats, power levels, and resources. Target high-power competitors to loot their vaults.</p>
+                    </div>
+
+                    <div class="card p-4">
+                        <div class="table-responsive">
+                            <table class="table text-left">
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Player Name</th>
+                                        <th>Civilization</th>
+                                        <th>Power Level</th>
+                                        <th>Resource Vaults</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-tbody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Wire scripting files -->
+    <script type="module" src="game.js"></script>
+</body>
+</html>
