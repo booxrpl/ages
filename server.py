@@ -1,8 +1,10 @@
 import http.server
 import json
 import os
+import time
+import urllib.parse
 
-PORT = 8086
+PORT = 8089
 
 # Simple file-based data stores
 LEADERBOARD_FILE = "db_leaderboard.json"
@@ -16,7 +18,8 @@ def read_json_file(filename, default):
         with open(filename, 'r', encoding='utf-8') as f:
             content = f.read().strip()
             return json.loads(content) if content else default
-    except Exception:
+    except Exception as e:
+        print(f"Error reading {filename}: {e}")
         return default
 
 def write_json_file(filename, data):
@@ -38,8 +41,6 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
-        parsed_path = urllib.parse.urlparse(self.path) if 'urllib' in globals() else None
-        # Simple manual query param parsing
         path = self.path
         query = ""
         if "?" in path:
@@ -59,7 +60,6 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(json.dumps(data).encode('utf-8'))
             
         elif path == "/attack":
-            # parse playerId from query, e.g. playerId=play_1234
             player_id = ""
             if "playerId=" in query:
                 player_id = query.split("playerId=")[1].split("&")[0]
@@ -107,8 +107,8 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
             sender = payload.get("sender", "Unknown")
             msg = payload.get("msg", "")
             if msg:
-                chat.push = chat.append({
-                    "time": int(time.time() * 1000) if 'time' in globals() else 0,
+                chat.append({
+                    "time": int(time.time() * 1000),
                     "sender": sender,
                     "msg": msg
                 })
@@ -125,7 +125,7 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
                     attacks[target_id] = []
                 
                 alert_copy = dict(alert)
-                alert_copy["time"] = int(time.time() * 1000) if 'time' in globals() else 0
+                alert_copy["time"] = int(time.time() * 1000)
                 attacks[target_id].append(alert_copy)
                 
                 write_json_file(ATTACKS_FILE, attacks)
@@ -135,11 +135,8 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
         else:
             self.wfile.write(json.dumps({"error": "Not Found"}).encode('utf-8'))
 
-import time
-import urllib.parse
-
 def run_server():
-    server_address = ('', PORT)
+    server_address = ('127.0.0.1', PORT)
     httpd = http.server.HTTPServer(server_address, CustomHandler)
     print(f"Starting Local Game Server on port {PORT}...")
     httpd.serve_forever()
