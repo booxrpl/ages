@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Outfit:wght@300;400;600;700&family=Special+Elite&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -16,6 +16,7 @@
         <div class="auth-card text-center">
             <h1 class="game-title">AGES OF MEMES</h1>
             <p class="game-subtitle font-cinzel">Definitive NFT Idle Edition</p>
+            <img src="riddle_banner.jpg" class="auth-banner" alt="Bearableguy123 Riddle Banner">
             <div class="divider"></div>
             <p class="description">
                 Welcome to the ultimate medieval strategy idle game. Upgrade your civilization through 4 key Ages. Purchase civilization NFTs, mine resources (Food, Wood, Gold, Stone), upgrade buildings, raise armies, engage in tactical PvP raids, and swap Gold for the <strong>$AGES</strong> Memetoken.
@@ -205,6 +206,28 @@
                         <!-- Panel 2: Upgrade trigger (idle) -->
                         <div id="age-upgrade-action-wrapper" class="p-2">
                             <!-- Populated dynamically by game.js -->
+                        </div>
+                    </div>
+
+                    <!-- Bearableguy123 Riddle Decoder Widget -->
+                    <div class="card p-4 mb-4 riddle-decoder-card">
+                        <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                            <h3 class="font-cinzel m-0 gold-text">Esoteric Riddle Decoder</h3>
+                            <span class="badge badge-danger font-cinzel">Riddle Active</span>
+                        </div>
+                        <div class="row align-items-center">
+                            <div class="col-md-3 text-center mb-3 mb-md-0">
+                                <img src="riddle_key.jpg" class="riddle-key-img" alt="Esoteric Riddle Key">
+                            </div>
+                            <div class="col-md-9">
+                                <h4 class="font-cinzel text-warning mb-2">The Riddle of the Bear</h4>
+                                <p id="riddle-hint" class="small text-muted mb-3">"A sleeping target, a crescent moon, a knight on a chessboard. What represents the value of global transaction speed?"</p>
+                                <div class="form-group text-left mb-2">
+                                    <input type="text" id="riddle-input" class="form-control text-center" placeholder="ENTER SOLVING KEYWORD..." style="text-transform: uppercase; background: #0c0c0e; border: 1px solid var(--border-gold); color: #fff;">
+                                </div>
+                                <button id="riddle-submit-btn" class="btn btn-gold w-100 font-cinzel">DECRYPT SYMBOL</button>
+                                <p id="riddle-result-msg" class="small mt-2 text-center" style="font-weight: bold;"></p>
+                            </div>
                         </div>
                     </div>
 

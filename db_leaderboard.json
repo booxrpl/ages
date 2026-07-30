@@ -1,0 +1,117 @@
+[
+  {
+    "id": "play_3hsfr3e",
+    "name": "boo xrp",
+    "civ": "Huns",
+    "civPerk": "Huns: Cavalry stable cost -15%, Wood gather +15%, Cavalry defense +10%",
+    "villagers": 5,
+    "military": {
+      "spearmen": 0,
+      "archers": 0,
+      "knights": 0,
+      "champions": 0,
+      "catapults": 0
+    },
+    "resources": {
+      "food": 589.5522499999755,
+      "wood": 117.3685675000267,
+      "gold": 294.95289999994316,
+      "stone": 501.7117166667237
+    },
+    "agesToken": 10,
+    "power": 800,
+    "rentals": [
+      {
+        "id": "list_1785179167887",
+        "name": "Barracks NFT",
+        "type": "building",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 18
+      },
+      {
+        "id": "list_1785179172023",
+        "name": "Barracks NFT",
+        "type": "building",
+        "cost": 1,
+        "duration": 60,
+        "status": "available",
+        "timeLeft": 0
+      },
+      {
+        "id": "list_1785179184295",
+        "name": "Villager NFT",
+        "type": "villager",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 54
+      },
+      {
+        "id": "list_1785179187416",
+        "name": "Villager NFT",
+        "type": "villager",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 55
+      },
+      {
+        "id": "list_1785179189185",
+        "name": "Villager NFT",
+        "type": "villager",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 49
+      },
+      {
+        "id": "list_1785179192056",
+        "name": "Villager NFT",
+        "type": "villager",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 23
+      },
+      {
+        "id": "list_1785184418054",
+        "name": "Barracks NFT",
+        "type": "building",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 3
+      },
+      {
+        "id": "list_1785184421357",
+        "name": "Barracks NFT",
+        "type": "building",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 31
+      },
+      {
+        "id": "list_1785184422236",
+        "name": "Barracks NFT",
+        "type": "building",
+        "cost": 1,
+        "duration": 60,
+        "status": "rented",
+        "timeLeft": 9
+      },
+      {
+        "id": "list_1785184423878",
+        "name": "Barracks NFT",
+        "type": "building",
+        "cost": 1,
+        "duration": 60,
+        "status": "available",
+        "timeLeft": 0
+      }
+    ],
+    "lastActive": 1785443064452
+  }
+]

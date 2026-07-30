@@ -523,6 +523,42 @@ class GameController {
         document.getElementById("btn-click-gold")?.addEventListener("click", () => this.manualGather("gold"));
         document.getElementById("btn-click-stone")?.addEventListener("click", () => this.manualGather("stone"));
 
+        // Riddle submit event handler (Bearableguy123 esoteric decryption)
+        document.getElementById("riddle-submit-btn")?.addEventListener("click", () => {
+            const input = document.getElementById("riddle-input")?.value.trim().toUpperCase();
+            const resultMsg = document.getElementById("riddle-result-msg");
+            if (!input || !resultMsg) return;
+
+            const today = new Date().toDateString();
+            const lastSolved = localStorage.getItem("ages_riddle_last_solved");
+
+            if (lastSolved === today) {
+                resultMsg.style.color = "var(--color-red)";
+                resultMsg.innerText = "❌ RIDDLE CODE REFUSED: You have already decrypted the symbol of the day. A new riddle will manifest tomorrow.";
+                return;
+            }
+
+            // Accept combinations for Riddle 1 (XRP, RIPPLE, 589)
+            if (input === "XRP" || input === "RIPPLE" || input === "589") {
+                localStorage.setItem("ages_riddle_last_solved", today);
+                resultMsg.style.color = "var(--color-green)";
+                resultMsg.innerText = "🔓 DECRYPTED SUCCESSFULLY: Bearableguy123 keyword accepted! Vaults loaded (+2000 Food, Wood, Gold, Stone)";
+                
+                const limit = this.getStorageLimit();
+                this.state.resources.food = Math.min(limit, this.state.resources.food + 2000);
+                this.state.resources.wood = Math.min(limit, this.state.resources.wood + 2000);
+                this.state.resources.gold = Math.min(limit, this.state.resources.gold + 2000);
+                this.state.resources.stone = Math.min(limit, this.state.resources.stone + 2000);
+                
+                this.saveState();
+                this.updateResourceUI();
+                this.showToast("🔓 Riddle Decrypted", "Keyword accepted! Received +2000 of all resources.", "success");
+            } else {
+                resultMsg.style.color = "var(--color-red)";
+                resultMsg.innerText = "❌ DECRYPTION FAILURE: Occult alignment mismatch. Seek the riddle keys again.";
+            }
+        });
+
         // Setup delegate binds dynamically
         document.body.addEventListener("click", (e) => {
             if (e.target.id === "buy-nft-villager") this.buyVillagerNFT();
