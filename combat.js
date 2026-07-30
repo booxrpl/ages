@@ -25,13 +25,22 @@ export class CombatEngine {
             catapults: defender.military.catapults || 0
         };
 
+        let defGarrison = {
+            spearmen: defender.garrison ? (defender.garrison.spearmen || 0) : 0,
+            archers: defender.garrison ? (defender.garrison.archers || 0) : 0,
+            knights: defender.garrison ? (defender.garrison.knights || 0) : 0,
+            champions: defender.garrison ? (defender.garrison.champions || 0) : 0,
+            catapults: defender.garrison ? (defender.garrison.catapults || 0) : 0
+        };
+
         log.push(`**Starting Forces:**`);
         log.push(`Attacker: 🔱 ${attUnits.spearmen} Spearmen, 🏹 ${attUnits.archers} Archers, 🐎 ${attUnits.knights} Knights, 🛡️ ${attUnits.champions} Champions, 💥 ${attUnits.catapults} Catapults`);
         log.push(`Defender: 🔱 ${defUnits.spearmen} Spearmen, 🏹 ${defUnits.archers} Archers, 🐎 ${defUnits.knights} Knights, 🛡️ ${defUnits.champions} Champions, 💥 ${defUnits.catapults} Catapults`);
         
-        const defenderHasCastle = defender.military.champions > 15 || defender.power > 7500;
+        const defenderHasCastle = !!(defender.nfts && defender.nfts.castle) || defender.military.champions > 15 || defender.power > 7500;
         if (defenderHasCastle) {
-            log.push(`🏰 **Defender Citadel:** Defender has a fortified Castle NFT! It will rain arrows unless countered by Catapults.`);
+            const totalGarr = defGarrison.spearmen + defGarrison.archers + defGarrison.knights + defGarrison.champions + defGarrison.catapults;
+            log.push(`🏰 **Defender Citadel:** Defender has a fortified Castle NFT! (Garrisoned: ${totalGarr} Units) It will rain arrows unless countered by Catapults.`);
         }
         log.push(`---`);
 
@@ -100,8 +109,20 @@ export class CombatEngine {
             // 1. Resolve Castle Defense Damage
             if (defenderHasCastle) {
                 const blockedDmg = attUnits.catapults * 50;
-                // Byzantines Castle deals 20% more arrow fire
                 let baseCastleDmg = defender.civ === "Byzantines" ? 240 : 200;
+                
+                // Add garrison arrow support
+                const garrisonDmg = ((defGarrison.spearmen || 0) * 5) + 
+                                     ((defGarrison.archers || 0) * 15) + 
+                                     ((defGarrison.knights || 0) * 10) + 
+                                     ((defGarrison.champions || 0) * 15) + 
+                                     ((defGarrison.catapults || 0) * 25);
+                
+                if (garrisonDmg > 0) {
+                    baseCastleDmg += garrisonDmg;
+                    log.push(`🏰 Castle Garrison boost: garrisoned forces add +**${garrisonDmg}** arrow fire power!`);
+                }
+
                 const castleDmg = Math.max(0, baseCastleDmg - blockedDmg);
                 if (castleDmg > 0) {
                     log.push(`🏰 Castle Arrows fire: Deals **${castleDmg}** damage to Attacker forces (Blocked ${blockedDmg} by Catapults)`);
@@ -294,6 +315,28 @@ export class CombatEngine {
         log.push(`Attacker Losses: 🔱 ${attLosses.spearmen} Spearmen, ${attLosses.archers} Archers, ${attLosses.knights} Knights, ${attLosses.champions} Champions, ${attLosses.catapults} Catapults`);
         log.push(`Defender Losses: 🛡️ ${defLosses.spearmen} Spearmen, ${defLosses.archers} Archers, ${defLosses.knights} Knights, ${defLosses.champions} Champions, ${defLosses.catapults} Catapults`);
 
+        let remainingGarrison = { ...defGarrison };
+        let garrisonLosses = { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 };
+        if (winner === "Attacker" && defenderHasCastle) {
+            const siegeCapacity = attUnits.catapults * 3;
+            if (siegeCapacity > 0) {
+                let totalGarrison = remainingGarrison.spearmen + remainingGarrison.archers + remainingGarrison.knights + remainingGarrison.champions + remainingGarrison.catapults;
+                if (totalGarrison > 0) {
+                    let lost = Math.min(totalGarrison, Math.floor(Math.random() * siegeCapacity) + 1);
+                    let lostGarrison = lost;
+                    while (lost > 0) {
+                        if (remainingGarrison.spearmen > 0) { remainingGarrison.spearmen--; garrisonLosses.spearmen++; lost--; }
+                        else if (remainingGarrison.archers > 0) { remainingGarrison.archers--; garrisonLosses.archers++; lost--; }
+                        else if (remainingGarrison.knights > 0) { remainingGarrison.knights--; garrisonLosses.knights++; lost--; }
+                        else if (remainingGarrison.champions > 0) { remainingGarrison.champions--; garrisonLosses.champions++; lost--; }
+                        else if (remainingGarrison.catapults > 0) { remainingGarrison.catapults--; garrisonLosses.catapults++; lost--; }
+                        else break;
+                    }
+                    log.push(`💥 Castle Breach: Attacker's catapult bombardment causes **${lostGarrison}** garrison casualties!`);
+                }
+            }
+        }
+
         let pillagedNFT = null;
         if (winner === "Attacker" && Math.random() < 0.20) {
             pillagedNFT = { name: "Pillaged War Chest (Upgrade)", perk: "+100 Gold bonus & +5% military base speed" };
@@ -307,7 +350,8 @@ export class CombatEngine {
             points: points,
             remainingMilitary: attUnits,
             pillagedNFT: pillagedNFT,
-            defenderRemainingMilitary: defUnits
+            defenderRemainingMilitary: defUnits,
+            defenderRemainingGarrison: remainingGarrison
         };
     }
 }

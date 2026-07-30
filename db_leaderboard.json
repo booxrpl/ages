@@ -13,10 +13,10 @@
       "catapults": 0
     },
     "resources": {
-      "food": 589.5522499999755,
-      "wood": 117.3685675000267,
-      "gold": 294.95289999994316,
-      "stone": 501.7117166667237
+      "food": 643.9242500000076,
+      "wood": 162.60159416668682,
+      "gold": 438.22169999995936,
+      "stone": 542.4186500000436
     },
     "agesToken": 10,
     "power": 800,
@@ -27,8 +27,8 @@
         "type": "building",
         "cost": 1,
         "duration": 60,
-        "status": "rented",
-        "timeLeft": 18
+        "status": "available",
+        "timeLeft": 0
       },
       {
         "id": "list_1785179172023",
@@ -36,8 +36,8 @@
         "type": "building",
         "cost": 1,
         "duration": 60,
-        "status": "available",
-        "timeLeft": 0
+        "status": "rented",
+        "timeLeft": 35
       },
       {
         "id": "list_1785179184295",
@@ -45,8 +45,8 @@
         "type": "villager",
         "cost": 1,
         "duration": 60,
-        "status": "rented",
-        "timeLeft": 54
+        "status": "available",
+        "timeLeft": 0
       },
       {
         "id": "list_1785179187416",
@@ -55,7 +55,7 @@
         "cost": 1,
         "duration": 60,
         "status": "rented",
-        "timeLeft": 55
+        "timeLeft": 25
       },
       {
         "id": "list_1785179189185",
@@ -64,7 +64,7 @@
         "cost": 1,
         "duration": 60,
         "status": "rented",
-        "timeLeft": 49
+        "timeLeft": 50
       },
       {
         "id": "list_1785179192056",
@@ -73,7 +73,7 @@
         "cost": 1,
         "duration": 60,
         "status": "rented",
-        "timeLeft": 23
+        "timeLeft": 26
       },
       {
         "id": "list_1785184418054",
@@ -81,8 +81,8 @@
         "type": "building",
         "cost": 1,
         "duration": 60,
-        "status": "rented",
-        "timeLeft": 3
+        "status": "available",
+        "timeLeft": 0
       },
       {
         "id": "list_1785184421357",
@@ -91,7 +91,7 @@
         "cost": 1,
         "duration": 60,
         "status": "rented",
-        "timeLeft": 31
+        "timeLeft": 18
       },
       {
         "id": "list_1785184422236",
@@ -99,8 +99,8 @@
         "type": "building",
         "cost": 1,
         "duration": 60,
-        "status": "rented",
-        "timeLeft": 9
+        "status": "available",
+        "timeLeft": 0
       },
       {
         "id": "list_1785184423878",
@@ -108,10 +108,10 @@
         "type": "building",
         "cost": 1,
         "duration": 60,
-        "status": "available",
-        "timeLeft": 0
+        "status": "rented",
+        "timeLeft": 48
       }
     ],
-    "lastActive": 1785443064452
+    "lastActive": 1785444222630
   }
 ]

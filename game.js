@@ -46,6 +46,9 @@ class GameController {
             if (parsed.xamanConnected === undefined) parsed.xamanConnected = false;
             if (parsed.xamanAddress === undefined) parsed.xamanAddress = "";
             if (parsed.xamanBalance === undefined) parsed.xamanBalance = 0;
+            if (!parsed.garrison) {
+                parsed.garrison = { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 };
+            }
             if (!parsed.achievements) {
                 parsed.achievements = {
                     mints: 0,
@@ -197,6 +200,7 @@ class GameController {
             xamanConnected: false,
             xamanAddress: "",
             xamanBalance: 0,
+            garrison: { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 },
             achievements: {
                 mints: 0,
                 battles: 0,
@@ -275,6 +279,7 @@ class GameController {
         if (profile) {
             this.state.resources = { ...profile.resources };
             this.state.military = { ...profile.military };
+            this.state.garrison = profile.garrison ? { ...profile.garrison } : { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 };
             
             // Adjust villager list count
             const countDiff = this.state.villagerList.length - profile.villagers;
@@ -832,6 +837,66 @@ class GameController {
                     window.location.reload();
                 });
             }
+        });
+
+        // Castle Garrison Operations
+        document.getElementById("btn-garrison-in")?.addEventListener("click", () => {
+            const unitType = document.getElementById("castle-garrison-unit-type").value;
+            const amountInput = document.getElementById("castle-garrison-amount");
+            const amt = Math.floor(parseInt(amountInput ? amountInput.value : "0") || 0);
+
+            if (amt <= 0) {
+                alert("⚠️ Please enter a valid number of units to garrison.");
+                return;
+            }
+
+            const available = this.state.military[unitType] || 0;
+            if (available < amt) {
+                alert(`⚠️ You do not have enough standing ${unitType} to garrison. (Available: ${available})`);
+                return;
+            }
+
+            const totalGarrison = (this.state.garrison.spearmen || 0) + 
+                                  (this.state.garrison.archers || 0) + 
+                                  (this.state.garrison.knights || 0) + 
+                                  (this.state.garrison.champions || 0) + 
+                                  (this.state.garrison.catapults || 0);
+
+            if (totalGarrison + amt > 50) {
+                alert(`⚠️ Garrison Capacity Exceeded! Castles can hold at most 50 units. (Space left: ${50 - totalGarrison})`);
+                return;
+            }
+
+            this.state.military[unitType] -= amt;
+            this.state.garrison[unitType] = (this.state.garrison[unitType] || 0) + amt;
+
+            this.saveState();
+            this.updateUI();
+            this.showToast("🏰 Units Garrisoned", `Successfully garrisoned ${amt} ${unitType} inside your Castle NFT!`, "success");
+        });
+
+        document.getElementById("btn-garrison-out")?.addEventListener("click", () => {
+            const unitType = document.getElementById("castle-garrison-unit-type").value;
+            const amountInput = document.getElementById("castle-garrison-amount");
+            const amt = Math.floor(parseInt(amountInput ? amountInput.value : "0") || 0);
+
+            if (amt <= 0) {
+                alert("⚠️ Please enter a valid number of units to unleash.");
+                return;
+            }
+
+            const garrisoned = this.state.garrison[unitType] || 0;
+            if (garrisoned < amt) {
+                alert(`⚠️ You do not have enough garrisoned ${unitType} inside your Castle. (Garrisoned: ${garrisoned})`);
+                return;
+            }
+
+            this.state.garrison[unitType] -= amt;
+            this.state.military[unitType] = (this.state.military[unitType] || 0) + amt;
+
+            this.saveState();
+            this.updateUI();
+            this.showToast("🛡️ Units Unleashed", `Unleashed ${amt} ${unitType} from your Castle to join the standing army!`, "info");
         });
     }
 
@@ -1914,6 +1979,46 @@ class GameController {
                 milWallet.innerHTML = `<div class="col-12 text-center text-muted font-cinzel py-3">No garrisoned military NFTs (Bases, Siege, or combat upgrades) owned. Construct them above.</div>`;
             }
         }
+
+        // Castle Garrison Rendering Logic
+        const hasCastle = !!(this.state.nfts.castle || rentBenefits.castleUnlocked);
+        const garrisonPanel = document.getElementById("castle-garrison-panel");
+        if (garrisonPanel) {
+            if (hasCastle) {
+                garrisonPanel.classList.remove("hidden");
+                
+                // Set default garrison state if undefined
+                if (!this.state.garrison) {
+                    this.state.garrison = { spearmen: 0, archers: 0, knights: 0, champions: 0, catapults: 0 };
+                }
+
+                // Update counts in list
+                document.getElementById("garrison-val-spearmen").textContent = this.state.garrison.spearmen || 0;
+                document.getElementById("garrison-val-archers").textContent = this.state.garrison.archers || 0;
+                document.getElementById("garrison-val-knights").textContent = this.state.garrison.knights || 0;
+                document.getElementById("garrison-val-champions").textContent = this.state.garrison.champions || 0;
+                document.getElementById("garrison-val-catapults").textContent = this.state.garrison.catapults || 0;
+
+                const totalGarrison = (this.state.garrison.spearmen || 0) + 
+                                      (this.state.garrison.archers || 0) + 
+                                      (this.state.garrison.knights || 0) + 
+                                      (this.state.garrison.champions || 0) + 
+                                      (this.state.garrison.catapults || 0);
+
+                const ratioText = document.getElementById("castle-garrison-ratio");
+                if (ratioText) {
+                    ratioText.textContent = `Garrisoned: ${totalGarrison} / 50 Units`;
+                }
+
+                const bar = document.getElementById("castle-garrison-bar");
+                if (bar) {
+                    const pct = Math.min(100, (totalGarrison / 50) * 100);
+                    bar.style.width = `${pct}%`;
+                }
+            } else {
+                garrisonPanel.classList.add("hidden");
+            }
+        }
     }
 
     // Dynamic Shop tab view handling lock status, asset buys, and upgrades
@@ -2496,6 +2601,7 @@ class GameController {
             const targetIndex = list.findIndex(p => p.id === target.id);
             if (targetIndex !== -1) {
                 list[targetIndex].military = result.defenderRemainingMilitary;
+                list[targetIndex].garrison = result.defenderRemainingGarrison;
                 if (result.winner === "Attacker") {
                     list[targetIndex].resources.food = Math.max(0, list[targetIndex].resources.food - result.loot.food);
                     list[targetIndex].resources.wood = Math.max(0, list[targetIndex].resources.wood - result.loot.wood);

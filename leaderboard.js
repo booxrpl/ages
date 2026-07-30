@@ -68,6 +68,19 @@ export class LeaderboardManager {
                 champions: playerState.military.champions || 0,
                 catapults: playerState.military.catapults || 0
             },
+            garrison: {
+                spearmen: playerState.garrison ? (playerState.garrison.spearmen || 0) : 0,
+                archers: playerState.garrison ? (playerState.garrison.archers || 0) : 0,
+                knights: playerState.garrison ? (playerState.garrison.knights || 0) : 0,
+                champions: playerState.garrison ? (playerState.garrison.champions || 0) : 0,
+                catapults: playerState.garrison ? (playerState.garrison.catapults || 0) : 0
+            },
+            nfts: {
+                castle: playerState.nfts.castle || false,
+                barracks: playerState.nfts.barracks || false,
+                stable: playerState.nfts.stable || false,
+                archeryRange: playerState.nfts.archeryRange || false
+            },
             resources: {
                 food: playerState.resources.food || 0,
                 wood: playerState.resources.wood || 0,

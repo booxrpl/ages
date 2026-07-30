@@ -739,6 +739,56 @@
                         </div>
                     </div>
 
+                        <!-- Castle Garrison Command -->
+                        <div id="castle-garrison-panel" class="card p-4 mt-4 text-center hidden">
+                            <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">🏰 Castle Garrison Vault 🏰</h3>
+                            <p class="small text-muted mb-4 font-cinzel">Garrison frontline soldiers inside your Castle NFT to protect them from raids and fire defensive arrows.</p>
+                            
+                            <div id="castle-garrison-status" style="margin-bottom: 20px;">
+                                <div class="progress-bar-container mb-2" style="height: 10px; background: rgba(0,0,0,0.5); border-radius: 4px; overflow: hidden; border: 1px solid var(--border-gold);">
+                                    <div id="castle-garrison-bar" style="width: 0%; height: 100%; background: var(--color-gold); transition: width 0.3s ease;"></div>
+                                </div>
+                                <span id="castle-garrison-ratio" class="small text-warning font-cinzel">Garrisoned: 0 / 50 Units</span>
+                            </div>
+
+                            <div class="row text-left mb-3">
+                                <div class="col-4">
+                                    <label class="small text-muted font-cinzel">Select Unit</label>
+                                    <select id="castle-garrison-unit-type" class="form-control" style="background: #070709; border: 1px solid var(--border-gold); color: #fff; padding: 4px; border-radius: 4px; width: 100%;">
+                                        <option value="spearmen">🔱 Spearmen</option>
+                                        <option value="archers">🏹 Archers</option>
+                                        <option value="knights">🐎 Knights</option>
+                                        <option value="champions">🛡️ Champions</option>
+                                        <option value="catapults">💥 Catapults</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <label class="small text-muted font-cinzel">Amount</label>
+                                    <input type="number" id="castle-garrison-amount" value="5" min="1" style="width: 100%; padding: 4px; background: #070709; border: 1px solid var(--border-gold); color: #fff; border-radius: 4px;">
+                                </div>
+                                <div class="col-4 d-flex align-items-end">
+                                    <div class="row w-100 g-1">
+                                        <div class="col-6 p-0 pr-1">
+                                            <button id="btn-garrison-in" class="btn btn-gold btn-sm w-100" style="padding: 6px 0;">GARRISON</button>
+                                        </div>
+                                        <div class="col-6 p-0 pl-1">
+                                            <button id="btn-garrison-out" class="btn btn-outline-warning btn-sm w-100" style="padding: 6px 0;">UNLEASH</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Current Garrison Details -->
+                            <div class="p-3 rounded bg-black text-left" style="font-family: monospace; border: 1px dashed var(--border-gold); line-height: 1.6;">
+                                <div class="small text-muted border-bottom pb-1 mb-2 font-cinzel" style="letter-spacing: 1px;">🛡️ Castle Defensive Garrison Details:</div>
+                                <div class="d-flex justify-content-between"><span>🔱 Garrisoned Spearmen:</span> <strong id="garrison-val-spearmen">0</strong></div>
+                                <div class="d-flex justify-content-between"><span>🏹 Garrisoned Archers:</span> <strong id="garrison-val-archers">0</strong></div>
+                                <div class="d-flex justify-content-between"><span>🐎 Garrisoned Knights:</span> <strong id="garrison-val-knights">0</strong></div>
+                                <div class="d-flex justify-content-between"><span>🛡️ Garrisoned Champions:</span> <strong id="garrison-val-champions">0</strong></div>
+                                <div class="d-flex justify-content-between"><span>💥 Garrisoned Catapults:</span> <strong id="garrison-val-catapults">0</strong></div>
+                            </div>
+                        </div>
+
                     <!-- Garrisoned Military NFTs Wallet -->
                     <div class="card p-4 mt-4">
                         <h3 class="font-cinzel border-bottom pb-2 mb-3 gold-text">Garrisoned Military NFTs Wallet</h3>
