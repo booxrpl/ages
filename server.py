@@ -10,6 +10,7 @@ PORT = 8089
 LEADERBOARD_FILE = "db_leaderboard.json"
 CHAT_FILE = "db_chat.json"
 ATTACKS_FILE = "db_attacks.json"
+CONFIG_FILE = "db_config.json"
 
 def read_json_file(filename, default):
     if not os.path.exists(filename):
@@ -57,6 +58,10 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
             
         elif path == "/chat":
             data = read_json_file(CHAT_FILE, [])
+            self.wfile.write(json.dumps(data).encode('utf-8'))
+            
+        elif path == "/config":
+            data = read_json_file(CONFIG_FILE, {"durationWeeks": 1, "startTime": int(time.time() * 1000)})
             self.wfile.write(json.dumps(data).encode('utf-8'))
             
         elif path == "/attack":
@@ -115,6 +120,10 @@ class CustomHandler(http.server.BaseHTTPRequestHandler):
                 chat = chat[-40:] # trim to last 40 messages
                 write_json_file(CHAT_FILE, chat)
             self.wfile.write(json.dumps(chat).encode('utf-8'))
+            
+        elif path == "/config":
+            write_json_file(CONFIG_FILE, payload)
+            self.wfile.write(json.dumps({"success": True}).encode('utf-8'))
             
         elif path == "/attack":
             target_id = payload.get("targetId")

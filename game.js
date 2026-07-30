@@ -222,11 +222,18 @@ class GameController {
 
     init() {
         this.state.playerId = this.state.playerId || "play_" + Math.random().toString(36).substring(2, 9);
+        this.gameConfig = { durationWeeks: 1, startTime: Date.now() };
         this.bindEvents();
         this.updateUI();
 
         if (this.state.registered) {
             this.startLoop();
+            
+            // Fetch initial configuration
+            this.leaderboard.fetchGameConfig().then(config => {
+                this.gameConfig = config;
+                this.startSeasonTimer();
+            });
             
             // First database sync
             this.leaderboard.syncPlayerProfile(this.state).then(() => {
@@ -250,6 +257,15 @@ class GameController {
                 await this.leaderboard.fetchChatLogs();
                 this.leaderboard.renderChatConsole();
             }, 3000);
+
+            // Fetch game config every 10 seconds to sync settings globally
+            setInterval(async () => {
+                const config = await this.leaderboard.fetchGameConfig();
+                if (config && (config.startTime !== this.gameConfig.startTime || config.durationWeeks !== this.gameConfig.durationWeeks)) {
+                    this.gameConfig = config;
+                    this.startSeasonTimer();
+                }
+            }, 10000);
         }
     }
 
@@ -769,6 +785,52 @@ class GameController {
         document.getElementById("reset-game-btn")?.addEventListener("click", () => {
             if (confirm("Are you sure you want to reset all game progress, NFTs, and local balances?")) {
                 this.resetState();
+            }
+        });
+
+        // Set game duration & restart season
+        document.getElementById("admin-btn-set-duration")?.addEventListener("click", () => {
+            const select = document.getElementById("admin-duration-select");
+            const weeks = parseInt(select ? select.value : "1");
+            
+            if (confirm(`Are you sure you want to set the season duration to ${weeks} week(s) and RESTART the season right now?`)) {
+                const newConfig = {
+                    durationWeeks: weeks,
+                    startTime: Date.now()
+                };
+                this.leaderboard.saveGameConfig(newConfig).then(() => {
+                    this.gameConfig = newConfig;
+                    this.startSeasonTimer();
+                    
+                    const overlay = document.getElementById("season-ended-overlay");
+                    if (overlay) overlay.remove();
+                    
+                    alert("📆 Season Duration successfully updated and game restarted!");
+                });
+            }
+        });
+
+        // Wipe Database & Reset System
+        document.getElementById("admin-btn-reset-server")?.addEventListener("click", () => {
+            if (confirm("🚨 WARNING: This will completely wipe all registered players, leaderboards, global chat logs, and active seasons from the database. Are you absolutely sure you want to reset the system?")) {
+                this.resetState();
+                
+                this.leaderboard.saveOnlineLeaderboard([]).then(async () => {
+                    await this.leaderboard.postChatMessage("SERVER", "🚨 System Reset: A new season has been initiated by the Archon Manager.");
+                    const defaultConfig = {
+                        durationWeeks: 1,
+                        startTime: Date.now()
+                    };
+                    await this.leaderboard.saveGameConfig(defaultConfig);
+                    this.gameConfig = defaultConfig;
+                    this.startSeasonTimer();
+                    
+                    const overlay = document.getElementById("season-ended-overlay");
+                    if (overlay) overlay.remove();
+                    
+                    alert("💥 System Database Wiped and Re-initialized successfully!");
+                    window.location.reload();
+                });
             }
         });
     }
@@ -3120,6 +3182,66 @@ class GameController {
             };
         }
         return null;
+    }
+
+    startSeasonTimer() {
+        if (this.seasonInterval) clearInterval(this.seasonInterval);
+        this.seasonInterval = setInterval(() => {
+            const durationMs = this.gameConfig.durationWeeks * 7 * 24 * 60 * 60 * 1000;
+            const endTime = this.gameConfig.startTime + durationMs;
+            const timeLeft = endTime - Date.now();
+            
+            const displayEl = document.getElementById("season-countdown-display");
+            if (!displayEl) return;
+            
+            if (timeLeft <= 0) {
+                displayEl.innerText = "Season Ended! Waiting for reset...";
+                displayEl.style.color = "var(--color-red)";
+                
+                if (!this.seasonEndedOverlayActive) {
+                    this.seasonEndedOverlayActive = true;
+                    this.showSeasonEndedOverlay();
+                }
+            } else {
+                this.seasonEndedOverlayActive = false;
+                const overlay = document.getElementById("season-ended-overlay");
+                if (overlay) overlay.remove();
+
+                const days = Math.floor(timeLeft / (24 * 60 * 60 * 1000));
+                const hours = Math.floor((timeLeft % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
+                const mins = Math.floor((timeLeft % (60 * 60 * 1000)) / (60 * 1000));
+                const secs = Math.floor((timeLeft % (60 * 1000)) / 1000);
+                
+                displayEl.innerText = `Season End: ${days}d ${hours}h ${mins}m ${secs}s`;
+                displayEl.style.color = "var(--color-gold)";
+            }
+        }, 1000);
+    }
+
+    showSeasonEndedOverlay() {
+        this.leaderboard.fetchOnlineLeaderboard().then(players => {
+            const sorted = players.sort((a,b) => b.power - a.power);
+            const winnerName = sorted.length > 0 ? sorted[0].name : "None";
+            const winnerPower = sorted.length > 0 ? sorted[0].power : 0;
+            
+            let overlay = document.getElementById("season-ended-overlay");
+            if (!overlay) {
+                overlay = document.createElement("div");
+                overlay.id = "season-ended-overlay";
+                overlay.style = "position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(7,7,9,0.98); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; color: white; text-align: center; font-family: var(--font-cinzel); border: 4px double var(--border-gold);";
+                document.body.appendChild(overlay);
+            }
+            overlay.innerHTML = `
+                <h1 style="font-size: 3rem; color: var(--color-gold); margin-bottom: 20px; text-shadow: 0 0 10px rgba(223,171,45,0.4);">🏆 SEASON ENDED 🏆</h1>
+                <p style="font-size: 1.5rem; margin-bottom: 30px; font-family: var(--font-outfit);">The ages have spoken. A new epoch has concluded!</p>
+                <div style="border: 2px dashed var(--border-gold); padding: 25px; border-radius: 8px; background: rgba(22,22,28,0.85); margin-bottom: 40px; max-width: 500px; width: 100%;">
+                    <h2 style="font-size: 1.8rem; color: #ffd700; margin-bottom: 10px;">👑 Victorious Emperor 👑</h2>
+                    <h3 style="font-size: 2.2rem; margin-bottom: 5px; font-family: var(--font-cinzel);">${winnerName}</h3>
+                    <p style="font-size: 1.1rem; color: var(--text-muted); font-family: var(--font-outfit);">Empire Power: ⚔️ ${winnerPower}</p>
+                </div>
+                <p class="small text-muted" style="max-width: 400px; line-height: 1.6; font-family: var(--font-outfit);">The Royal Manager is currently configuring the next season duration. The game will resume automatically once restarted.</p>
+            `;
+        });
     }
 }
 

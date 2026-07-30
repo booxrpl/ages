@@ -51,6 +51,12 @@
             <div class="header-logo">
                 <h2 class="logo-text font-cinzel">AGES OF MEMES</h2>
             </div>
+
+            <!-- Global Season Timer -->
+            <div class="season-timer-panel font-cinzel" title="Season Remaining Time" style="display: flex; align-items: center; background: rgba(0,0,0,0.6); padding: 5px 15px; border: 1px dashed var(--border-gold); border-radius: 4px; margin-right: 15px; font-size: 0.9rem; color: var(--color-gold);">
+                <span style="margin-right: 6px;">🏆</span>
+                <span id="season-countdown-display">Season End: Calculating...</span>
+            </div>
             
             <!-- Live Resource Panel -->
             <div class="resource-panel">
@@ -1283,6 +1289,33 @@
                                     </div>
                                 </div>
                                 <button id="admin-btn-grant" class="btn btn-gold w-100 mt-3 font-cinzel">GRANT TREASURE</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Season Duration & Game Settings -->
+                    <div class="row mt-4 mb-4">
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-4 h-100">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3 text-warning">Season Duration Settings</h3>
+                                <p class="small text-muted mb-3 font-cinzel">Configure the game duration (1 to 4 weeks). Resetting resets the start date to right now.</p>
+                                <div class="form-group text-left mb-3">
+                                    <label for="admin-duration-select" class="small text-muted font-cinzel">Active Season Length</label>
+                                    <select id="admin-duration-select" class="form-control" style="background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold); color: #fff; border-radius: 4px; padding: 6px; width: 100%;">
+                                        <option value="1">1 Week</option>
+                                        <option value="2">2 Weeks</option>
+                                        <option value="3">3 Weeks</option>
+                                        <option value="4">4 Weeks</option>
+                                    </select>
+                                </div>
+                                <button id="admin-btn-set-duration" class="btn btn-gold w-100 font-cinzel">SET DURATION & RESTART SEASON</button>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <div class="card p-4 h-100 text-center d-flex flex-column justify-content-center">
+                                <h3 class="font-cinzel border-bottom pb-2 mb-3 text-danger">Reset Game Factions</h3>
+                                <p class="small text-muted mb-3 font-cinzel">Completely wipe the leaderboard, global chats, and player database to start fresh.</p>
+                                <button id="admin-btn-reset-server" class="btn btn-danger w-100 mt-auto font-cinzel">WIPE DATABASE & RESET SYSTEM</button>
                             </div>
                         </div>
                     </div>

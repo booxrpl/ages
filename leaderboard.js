@@ -6,7 +6,7 @@ export class LeaderboardManager {
         this.npcs = []; // NPCs completely removed! Only real online players.
         this.chatLogs = [];
         this.onlinePlayers = [];
-        this.bucketBase = "https://28d0c26764fa638d-98-235-193-244.serveousercontent.com";
+        this.bucketBase = "https://da02154622f08884-98-235-193-244.serveousercontent.com";
     }
 
     async fetchOnlineLeaderboard() {
@@ -303,5 +303,29 @@ export class LeaderboardManager {
             rental: rental,
             message: `Successfully leased ${rental.name} from player ${owner.name}!`
         };
+    }
+
+    async fetchGameConfig() {
+        try {
+            const response = await fetch(`${this.bucketBase}/config`);
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            }
+        } catch (e) {
+            console.error("Failed to fetch game config", e);
+        }
+        return { durationWeeks: 1, startTime: Date.now() };
+    }
+
+    async saveGameConfig(config) {
+        try {
+            await fetch(`${this.bucketBase}/config`, {
+                method: "POST",
+                body: JSON.stringify(config)
+            });
+        } catch (e) {
+            console.error("Failed to save game config", e);
+        }
     }
 }
